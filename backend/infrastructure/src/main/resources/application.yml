@@ -2,5 +2,30 @@ spring:
   application:
     name: iris
 
+  # Lee el .env de la raíz del proyecto como si fuera un archivo .properties.
+  # Dos rutas porque depende de desde dónde arranques la app:
+  #   ./.env       -> si arrancas desde la raíz (VS Code)
+  #   ../../.env   -> si arrancas desde backend/infrastructure (Maven)
+  # "optional:" = si no lo encuentra, no falla (en producción vendrían del sistema).
+  config:
+    import:
+      - optional:file:./.env[.properties]
+      - optional:file:../../.env[.properties]
+
+  datasource:
+    url: jdbc:postgresql://localhost:${DB_PORT}/${POSTGRES_DB}
+    username: ${POSTGRES_USER}
+    password: ${POSTGRES_PASSWORD}
+
+  jpa:
+    # Flyway es el dueño del esquema; Hibernate solo VALIDA que las entidades coincidan
+    hibernate:
+      ddl-auto: validate
+    # Evita consultas a la BD escondidas en la capa web (mala práctica en APIs REST)
+    open-in-view: false
+
+  flyway:
+    locations: classpath:db/migration
+
 server:
   port: 8080
