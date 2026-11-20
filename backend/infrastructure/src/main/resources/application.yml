@@ -27,6 +27,12 @@ spring:
   flyway:
     locations: classpath:db/migration
 
+  # Límite de subida: Spring rechaza el archivo ANTES de leerlo completo si lo supera
+  servlet:
+    multipart:
+      max-file-size: 20MB
+      max-request-size: 21MB
+
 # Configuración propia de Iris
 iris:
   jwt:
@@ -34,6 +40,11 @@ iris:
     secreto: ${JWT_SECRET}
     # Cuánto dura una sesión antes de pedir login otra vez
     duracion: 8h
+  documentos:
+    # Carpeta de copias temporales. Por defecto, la carpeta temporal del sistema (fuera del repo)
+    directorio-temporal: ${IRIS_DIRECTORIO_TEMPORAL:${java.io.tmpdir}/iris}
+    # Debe coincidir con spring.servlet.multipart.max-file-size
+    tamano-maximo: 20MB
   cors:
     # Frontend de React con Vite (puerto por defecto 5173). Varios: separados por coma
     origenes: ${CORS_ORIGENES:http://localhost:5173}

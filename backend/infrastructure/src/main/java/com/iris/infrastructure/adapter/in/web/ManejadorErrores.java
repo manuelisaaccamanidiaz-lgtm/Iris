@@ -1,15 +1,18 @@
 package com.iris.infrastructure.adapter.in.web;
 
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ProblemDetail;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.multipart.MaxUploadSizeExceededException;
 
 import com.iris.application.auth.CredencialesInvalidasException;
 import com.iris.domain.compartido.AccesoDenegadoException;
 import com.iris.domain.compartido.RecursoNoEncontradoException;
 import com.iris.domain.compartido.ReglaDeNegocioException;
+import com.iris.domain.documento.DocumentoDuplicadoException;
 import com.iris.domain.usuario.EmailYaRegistradoException;
 
 /**
@@ -22,6 +25,23 @@ class ManejadorErrores {
     @ExceptionHandler(EmailYaRegistradoException.class)
     ProblemDetail emailDuplicado(EmailYaRegistradoException e) {
         return problema(HttpStatus.CONFLICT, "Email ya registrado", e.getMessage()); // 409
+    }
+
+    @ExceptionHandler(DocumentoDuplicadoException.class)
+    ProblemDetail documentoDuplicado(DocumentoDuplicadoException e) {
+        return problema(HttpStatus.CONFLICT, "Documento duplicado", e.getMessage()); // 409
+    }
+
+    /** Spring corta el archivo antes de llegar al controlador si supera spring.servlet.multipart.max-file-size */
+    @ExceptionHandler(MaxUploadSizeExceededException.class)
+    ProblemDetail archivoMuyGrande(MaxUploadSizeExceededException e) {
+        return problema(HttpStatus.CONTENT_TOO_LARGE, "Archivo muy grande", "El PDF supera el tamaño máximo permitido"); // 413
+    }
+
+    /** Red de seguridad: si dos peticiones simultáneas violan un UNIQUE, la BD gana y respondemos 409 */
+    @ExceptionHandler(DataIntegrityViolationException.class)
+    ProblemDetail conflictoDeDatos(DataIntegrityViolationException e) {
+        return problema(HttpStatus.CONFLICT, "Conflicto", "La operación choca con datos existentes");
     }
 
     @ExceptionHandler(ReglaDeNegocioException.class)

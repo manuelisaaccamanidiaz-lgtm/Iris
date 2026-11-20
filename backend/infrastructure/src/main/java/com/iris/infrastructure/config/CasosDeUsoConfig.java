@@ -6,10 +6,14 @@ import org.springframework.context.annotation.Configuration;
 import com.iris.application.auth.CrearAdministradorInicial;
 import com.iris.application.auth.IniciarSesion;
 import com.iris.application.auth.RegistrarUsuario;
+import com.iris.application.documento.ListarDocumentos;
+import com.iris.application.documento.SubirDocumento;
 import com.iris.application.evento.CrearEvento;
 import com.iris.application.evento.ListarEventos;
+import com.iris.application.port.out.AlmacenTemporal;
 import com.iris.application.port.out.CodificadorPassword;
 import com.iris.application.port.out.GeneradorToken;
+import com.iris.domain.documento.DocumentoRepositorio;
 import com.iris.domain.evento.EventoRepositorio;
 import com.iris.domain.usuario.UsuarioRepositorio;
 
@@ -45,5 +49,16 @@ public class CasosDeUsoConfig {
     @Bean
     ListarEventos listarEventos(EventoRepositorio eventos) {
         return new ListarEventos(eventos);
+    }
+
+    @Bean
+    SubirDocumento subirDocumento(EventoRepositorio eventos, DocumentoRepositorio documentos,
+                                  AlmacenTemporal almacen, DocumentosPropiedades propiedades) {
+        return new SubirDocumento(eventos, documentos, almacen, propiedades.tamanoMaximo().toBytes());
+    }
+
+    @Bean
+    ListarDocumentos listarDocumentos(EventoRepositorio eventos, DocumentoRepositorio documentos) {
+        return new ListarDocumentos(eventos, documentos);
     }
 }
