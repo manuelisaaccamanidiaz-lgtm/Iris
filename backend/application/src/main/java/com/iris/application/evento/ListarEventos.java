@@ -3,10 +3,10 @@ package com.iris.application.evento;
 import java.util.List;
 import java.util.UUID;
 
-import com.iris.domain.evento.Evento;
+import com.iris.domain.evento.EventoDeMiembro;
 import com.iris.domain.evento.EventoRepositorio;
 
-/** Caso de uso: ver mis eventos (solo los míos). */
+/** Caso de uso: ver los eventos donde soy miembro, con mi rol en cada uno. */
 public class ListarEventos {
 
     private final EventoRepositorio eventos;
@@ -15,7 +15,7 @@ public class ListarEventos {
         this.eventos = eventos;
     }
 
-    public List<Evento> ejecutar(UUID usuarioId) {
-        return eventos.listarPorUsuario(usuarioId);
+    public List<EventoDeMiembro> ejecutar(UUID usuarioId) {
+        return eventos.listarDeMiembro(usuarioId);
     }
 }
