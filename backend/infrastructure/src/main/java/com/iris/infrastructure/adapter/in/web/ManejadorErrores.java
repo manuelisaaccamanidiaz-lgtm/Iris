@@ -7,6 +7,7 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 import com.iris.application.auth.CredencialesInvalidasException;
+import com.iris.domain.compartido.RecursoNoEncontradoException;
 import com.iris.domain.compartido.ReglaDeNegocioException;
 import com.iris.domain.usuario.EmailYaRegistradoException;
 
@@ -27,6 +28,11 @@ class ManejadorErrores {
         return problema(HttpStatus.BAD_REQUEST, "Datos inválidos", e.getMessage()); // 400
     }
 
+    @ExceptionHandler(RecursoNoEncontradoException.class)
+    ProblemDetail noEncontrado(RecursoNoEncontradoException e) {
+        return problema(HttpStatus.NOT_FOUND, "No encontrado", e.getMessage()); // 404
+    }
+
     @ExceptionHandler(CredencialesInvalidasException.class)
     ProblemDetail credenciales(CredencialesInvalidasException e) {
         return problema(HttpStatus.UNAUTHORIZED, "No autorizado", e.getMessage()); // 401
@@ -34,7 +40,7 @@ class ManejadorErrores {
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
     ProblemDetail validacion(MethodArgumentNotValidException e) {
-        return problema(HttpStatus.BAD_REQUEST, "Datos inválidos", "Faltan campos obligatorios");
+        return problema(HttpStatus.BAD_REQUEST, "Datos inválidos", "Faltan campos obligatorios o tienen formato inválido");
     }
 
     private ProblemDetail problema(HttpStatus estado, String titulo, String detalle) {
