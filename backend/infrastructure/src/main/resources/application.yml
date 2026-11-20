@@ -27,5 +27,13 @@ spring:
   flyway:
     locations: classpath:db/migration
 
+# Configuración propia de Iris
+iris:
+  jwt:
+    # Clave para firmar los tokens (HS256). Mínimo 32 caracteres. Viene del .env
+    secreto: ${JWT_SECRET}
+    # Cuánto dura una sesión antes de pedir login otra vez
+    duracion: 8h
+
 server:
   port: 8080
