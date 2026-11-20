@@ -56,6 +56,18 @@
             <artifactId>flyway-database-postgresql</artifactId>
         </dependency>
 
+        <!-- Seguridad: Spring Security + validación de JWT (Resource Server).
+             En Spring Boot 4 el starter de resource server cambió de nombre
+             (antes: spring-boot-starter-oauth2-resource-server, ahora deprecado) -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-security</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-security-oauth2-resource-server</artifactId>
+        </dependency>
+
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-webmvc-test</artifactId>
