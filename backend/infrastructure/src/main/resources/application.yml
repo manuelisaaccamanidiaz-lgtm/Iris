@@ -34,6 +34,14 @@ iris:
     secreto: ${JWT_SECRET}
     # Cuánto dura una sesión antes de pedir login otra vez
     duracion: 8h
+  cors:
+    # Frontend de React con Vite (puerto por defecto 5173). Varios: separados por coma
+    origenes: ${CORS_ORIGENES:http://localhost:5173}
+  admin:
+    # Primer administrador. Vacío = no se crea. El ":" da un valor por defecto (vacío)
+    nombre: ${IRIS_ADMIN_NOMBRE:Administrador}
+    email: ${IRIS_ADMIN_EMAIL:}
+    password: ${IRIS_ADMIN_PASSWORD:}
 
 server:
   port: 8080

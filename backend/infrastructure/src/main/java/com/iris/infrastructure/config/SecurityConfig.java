@@ -1,6 +1,8 @@
 package com.iris.infrastructure.config;
 
 import java.nio.charset.StandardCharsets;
+import java.time.Duration;
+import java.util.List;
 
 import javax.crypto.SecretKey;
 import javax.crypto.spec.SecretKeySpec;
@@ -9,6 +11,7 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
+import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
@@ -22,17 +25,23 @@ import org.springframework.security.oauth2.jwt.NimbusJwtEncoder;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationConverter;
 import org.springframework.security.oauth2.server.resource.authentication.JwtGrantedAuthoritiesConverter;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 import com.nimbusds.jose.jwk.source.ImmutableSecret;
 
 /** El "portero" de Iris: qué rutas son públicas, cuáles piden token y cómo se valida. */
 @Configuration
-@EnableConfigurationProperties(JwtPropiedades.class)
+@EnableConfigurationProperties({JwtPropiedades.class, CorsPropiedades.class})
 public class SecurityConfig {
 
     @Bean
     SecurityFilterChain cadenaDeFiltros(HttpSecurity http) throws Exception {
         http
+            // CORS: usa el bean corsConfigurationSource() de abajo. Va primero para que
+            // las peticiones "preflight" (OPTIONS) del navegador no choquen con la seguridad
+            .cors(Customizer.withDefaults())
             // CSRF protege sesiones basadas en cookies. Nosotros usamos token en un header
             // que el navegador NO envía solo, así que aquí no aplica.
             .csrf(AbstractHttpConfigurer::disable)
@@ -61,6 +70,21 @@ public class SecurityConfig {
         JwtAuthenticationConverter convertidor = new JwtAuthenticationConverter();
         convertidor.setJwtGrantedAuthoritiesConverter(roles);
         return convertidor;
+    }
+
+    /** Reglas CORS: qué frontends (orígenes) pueden llamar a la API desde un navegador. */
+    @Bean
+    CorsConfigurationSource corsConfigurationSource(CorsPropiedades propiedades) {
+        CorsConfiguration cors = new CorsConfiguration();
+        cors.setAllowedOrigins(propiedades.origenes());   // lista exacta, nunca "*"
+        cors.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
+        cors.setAllowedHeaders(List.of("Authorization", "Content-Type"));
+        cors.setAllowCredentials(false);                  // usamos token en header, no cookies
+        cors.setMaxAge(Duration.ofHours(1));              // el navegador recuerda el permiso 1 h
+
+        UrlBasedCorsConfigurationSource fuente = new UrlBasedCorsConfigurationSource();
+        fuente.registerCorsConfiguration("/api/**", cors);
+        return fuente;
     }
 
     @Bean
