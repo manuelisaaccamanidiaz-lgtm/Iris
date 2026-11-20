@@ -41,6 +41,14 @@ public record Usuario(
         return new Usuario(null, nombre, email, passwordHash, Rol.ORGANIZADOR, true, Instant.now());
     }
 
+    /**
+     * Puerta SEPARADA y explícita para crear administradores. Solo la usa el arranque
+     * de la app (con datos del .env); ningún endpoint público llega aquí.
+     */
+    public static Usuario crearAdministrador(String nombre, Email email, String passwordHash) {
+        return new Usuario(null, nombre, email, passwordHash, Rol.ADMIN, true, Instant.now());
+    }
+
     public boolean esAdmin() {
         return rol == Rol.ADMIN;
     }

@@ -3,6 +3,7 @@ package com.iris.infrastructure.config;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
+import com.iris.application.auth.CrearAdministradorInicial;
 import com.iris.application.auth.IniciarSesion;
 import com.iris.application.auth.RegistrarUsuario;
 import com.iris.application.port.out.CodificadorPassword;
@@ -25,5 +26,11 @@ public class CasosDeUsoConfig {
     IniciarSesion iniciarSesion(UsuarioRepositorio usuarios, CodificadorPassword codificador,
                                 GeneradorToken generadorToken) {
         return new IniciarSesion(usuarios, codificador, generadorToken);
+    }
+
+    @Bean
+    CrearAdministradorInicial crearAdministradorInicial(UsuarioRepositorio usuarios,
+                                                        CodificadorPassword codificador) {
+        return new CrearAdministradorInicial(usuarios, codificador);
     }
 }
