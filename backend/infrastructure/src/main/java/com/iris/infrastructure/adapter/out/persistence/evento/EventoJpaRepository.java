@@ -5,13 +5,25 @@ import java.util.Optional;
 import java.util.UUID;
 
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
-/** Spring Data genera las consultas a partir del NOMBRE del método. */
 interface EventoJpaRepository extends JpaRepository<EventoEntity, UUID> {
 
-    // WHERE usuario_id = ? ORDER BY fecha_inicio ASC
-    List<EventoEntity> findByUsuarioIdOrderByFechaInicioAsc(UUID usuarioId);
+    // JOIN con miembros: solo los eventos donde :usuarioId es miembro, junto con su rol
+    @Query("""
+            select new com.iris.infrastructure.adapter.out.persistence.evento.EventoConRolFila(e, m.rol)
+            from EventoEntity e, MiembroEventoEntity m
+            where m.id.eventoId = e.id and m.id.usuarioId = :usuarioId
+            order by e.fechaInicio asc
+            """)
+    List<EventoConRolFila> listarDeMiembro(@Param("usuarioId") UUID usuarioId);
 
-    // WHERE id = ? AND usuario_id = ?   <- el filtro multi-tenant
-    Optional<EventoEntity> findByIdAndUsuarioId(UUID id, UUID usuarioId);
+    @Query("""
+            select new com.iris.infrastructure.adapter.out.persistence.evento.EventoConRolFila(e, m.rol)
+            from EventoEntity e, MiembroEventoEntity m
+            where m.id.eventoId = e.id and e.id = :eventoId and m.id.usuarioId = :usuarioId
+            """)
+    Optional<EventoConRolFila> buscarComoMiembro(@Param("eventoId") UUID eventoId,
+                                                 @Param("usuarioId") UUID usuarioId);
 }

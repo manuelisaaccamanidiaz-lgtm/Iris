@@ -7,6 +7,7 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 import com.iris.application.auth.CredencialesInvalidasException;
+import com.iris.domain.compartido.AccesoDenegadoException;
 import com.iris.domain.compartido.RecursoNoEncontradoException;
 import com.iris.domain.compartido.ReglaDeNegocioException;
 import com.iris.domain.usuario.EmailYaRegistradoException;
@@ -31,6 +32,11 @@ class ManejadorErrores {
     @ExceptionHandler(RecursoNoEncontradoException.class)
     ProblemDetail noEncontrado(RecursoNoEncontradoException e) {
         return problema(HttpStatus.NOT_FOUND, "No encontrado", e.getMessage()); // 404
+    }
+
+    @ExceptionHandler(AccesoDenegadoException.class)
+    ProblemDetail accesoDenegado(AccesoDenegadoException e) {
+        return problema(HttpStatus.FORBIDDEN, "Acceso denegado", e.getMessage()); // 403
     }
 
     @ExceptionHandler(CredencialesInvalidasException.class)

@@ -12,9 +12,8 @@ import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 
 /**
- * Tabla eventos. usuarioId es un UUID simple (no @ManyToOne a UsuarioEntity):
- * para filtrar por dueño no necesitamos cargar el usuario completo, y así cada
- * agregado (usuario, evento) queda independiente.
+ * Tabla eventos. creadoPor es un UUID simple (no @ManyToOne a UsuarioEntity):
+ * referenciamos otro agregado por su identidad. Los permisos viven en evento_miembros.
  */
 @Entity
 @Table(name = "eventos")
@@ -24,8 +23,8 @@ public class EventoEntity {
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
-    @Column(name = "usuario_id", nullable = false, updatable = false)
-    private UUID usuarioId;
+    @Column(name = "creado_por", nullable = false, updatable = false)
+    private UUID creadoPor;
 
     @Column(nullable = false, length = 150)
     private String nombre;
@@ -48,10 +47,10 @@ public class EventoEntity {
     protected EventoEntity() {
     }
 
-    EventoEntity(UUID id, UUID usuarioId, String nombre, String descripcion, String lugar,
+    EventoEntity(UUID id, UUID creadoPor, String nombre, String descripcion, String lugar,
                  LocalDate fechaInicio, LocalDate fechaFin, Instant creadoEn) {
         this.id = id;
-        this.usuarioId = usuarioId;
+        this.creadoPor = creadoPor;
         this.nombre = nombre;
         this.descripcion = descripcion;
         this.lugar = lugar;
@@ -61,7 +60,7 @@ public class EventoEntity {
     }
 
     UUID getId() { return id; }
-    UUID getUsuarioId() { return usuarioId; }
+    UUID getCreadoPor() { return creadoPor; }
     String getNombre() { return nombre; }
     String getDescripcion() { return descripcion; }
     String getLugar() { return lugar; }
