@@ -29,8 +29,13 @@ public class BuscarFragmentos {
         this.buscador = buscador;
     }
 
-    public List<FragmentoEncontrado> ejecutar(UUID usuarioId, UUID eventoId, String pregunta) {
-        // 0. ¿Es miembro? Cualquier rol puede preguntar (incluso LECTOR). Si no: 404
+    /**
+     * Validaciones previas (también las usa el streaming ANTES de abrir la conexión,
+     * para responder 404/400 normales en vez de un stream que falla a la mitad).
+     * @return la pregunta limpia
+     */
+    public String validar(UUID usuarioId, UUID eventoId, String pregunta) {
+        // ¿Es miembro? Cualquier rol puede preguntar (incluso LECTOR). Si no: 404
         eventos.buscarComoMiembro(eventoId, usuarioId)
                 .orElseThrow(() -> new RecursoNoEncontradoException("Evento no encontrado"));
 
@@ -41,6 +46,12 @@ public class BuscarFragmentos {
         if (limpia.length() > 1000) {
             throw new ReglaDeNegocioException("La pregunta es demasiado larga (máximo 1000 caracteres)");
         }
+        return limpia;
+    }
+
+    public List<FragmentoEncontrado> ejecutar(UUID usuarioId, UUID eventoId, String pregunta) {
+        // 0. Membresía y pregunta válida
+        String limpia = validar(usuarioId, eventoId, pregunta);
 
         // 1. Embedding de la pregunta con el MISMO modelo del índice (taskType RETRIEVAL_QUERY)
         float[] vector = embeddings.paraConsulta(limpia);
