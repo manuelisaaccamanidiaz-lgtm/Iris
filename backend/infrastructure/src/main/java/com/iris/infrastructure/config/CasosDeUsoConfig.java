@@ -6,6 +6,7 @@ import org.springframework.context.annotation.Configuration;
 import com.iris.application.auth.CrearAdministradorInicial;
 import com.iris.application.auth.IniciarSesion;
 import com.iris.application.auth.RegistrarUsuario;
+import com.iris.application.consulta.BuscarFragmentos;
 import com.iris.application.documento.Fragmentador;
 import com.iris.application.documento.ListarDocumentos;
 import com.iris.application.documento.ProcesarDocumento;
@@ -13,6 +14,7 @@ import com.iris.application.documento.SubirDocumento;
 import com.iris.application.evento.CrearEvento;
 import com.iris.application.evento.ListarEventos;
 import com.iris.application.port.out.AlmacenTemporal;
+import com.iris.application.port.out.BuscadorFragmentos;
 import com.iris.application.port.out.CodificadorPassword;
 import com.iris.application.port.out.ColaIndexacion;
 import com.iris.application.port.out.ContadorTokens;
@@ -63,6 +65,12 @@ public class CasosDeUsoConfig {
                                   AlmacenTemporal almacen, ColaIndexacion cola,
                                   DocumentosPropiedades propiedades) {
         return new SubirDocumento(eventos, documentos, almacen, cola, propiedades.tamanoMaximo().toBytes());
+    }
+
+    @Bean
+    BuscarFragmentos buscarFragmentos(EventoRepositorio eventos, GeneradorEmbeddings embeddings,
+                                      BuscadorFragmentos buscador) {
+        return new BuscarFragmentos(eventos, embeddings, buscador);
     }
 
     @Bean
