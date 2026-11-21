@@ -52,6 +52,20 @@ iris:
       modelo: gemini-embedding-001
       # Debe coincidir con vector(1536) de la tabla fragmentos
       dimensiones: 1536
+    chat:
+      # Groq (API compatible con OpenAI). La clave viene del .env
+      api-key: ${GROQ_API_KEY}
+      base-url: https://api.groq.com/openai/v1
+      # llama-3.3-70b-versatile no está disponible para todas las cuentas; gpt-oss-120b sí
+      modelo: ${GROQ_MODELO:openai/gpt-oss-120b}
+      # 0.2 = respuestas estables y fieles a los datos (para fechas y montos no queremos creatividad)
+      temperatura: 0.2
+      max-tokens: 800
+  consulta:
+    # Un fragmento que NO comparte palabras con la pregunta solo cuenta como evidencia si su
+    # similitud supera este valor. Calibrado con datos reales (Día 3): preguntas sin relación
+    # con el evento ~0.40; relacionadas con sinónimos ~0.55. Lo dudoso lo filtra la regla 3 del prompt
+    umbral-similitud: 0.50
   cors:
     # Frontend de React con Vite (puerto por defecto 5173). Varios: separados por coma
     origenes: ${CORS_ORIGENES:http://localhost:5173}

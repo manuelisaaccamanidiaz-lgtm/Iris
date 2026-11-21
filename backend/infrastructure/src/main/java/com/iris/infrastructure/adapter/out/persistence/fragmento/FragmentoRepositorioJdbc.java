@@ -9,6 +9,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.iris.domain.documento.Fragmento;
 import com.iris.domain.documento.FragmentoRepositorio;
+import com.iris.infrastructure.adapter.out.persistence.VectorPg;
 
 /**
  * Adaptador con JdbcTemplate (SQL directo) en vez de JPA. ¿Por qué? JPA/Hibernate no conoce el
@@ -45,7 +46,7 @@ class FragmentoRepositorioJdbc implements FragmentoRepositorio {
             ps.setString(6, f.seccion());
             ps.setString(7, f.contenido());
             ps.setInt(8, f.tokens());
-            ps.setString(9, aTextoVector(f.embedding()));
+            ps.setString(9, VectorPg.aTexto(f.embedding()));
         });
     }
 
@@ -54,17 +55,5 @@ class FragmentoRepositorioJdbc implements FragmentoRepositorio {
         Integer total = jdbc.queryForObject(
                 "SELECT count(*) FROM fragmentos WHERE documento_id = ?", Integer.class, documentoId);
         return total == null ? 0 : total;
-    }
-
-    /** float[] {0.1f, -0.2f} -> "[0.1,-0.2]" (el formato de texto que entiende pgvector). */
-    static String aTextoVector(float[] v) {
-        StringBuilder sb = new StringBuilder(v.length * 10).append('[');
-        for (int i = 0; i < v.length; i++) {
-            if (i > 0) {
-                sb.append(',');
-            }
-            sb.append(v[i]);
-        }
-        return sb.append(']').toString();
     }
 }

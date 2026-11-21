@@ -6,6 +6,9 @@ import org.springframework.context.annotation.Configuration;
 import com.iris.application.auth.CrearAdministradorInicial;
 import com.iris.application.auth.IniciarSesion;
 import com.iris.application.auth.RegistrarUsuario;
+import com.iris.application.consulta.BuscarFragmentos;
+import com.iris.application.consulta.ConsultarIris;
+import com.iris.application.consulta.HistorialConsultas;
 import com.iris.application.documento.Fragmentador;
 import com.iris.application.documento.ListarDocumentos;
 import com.iris.application.documento.ProcesarDocumento;
@@ -13,12 +16,15 @@ import com.iris.application.documento.SubirDocumento;
 import com.iris.application.evento.CrearEvento;
 import com.iris.application.evento.ListarEventos;
 import com.iris.application.port.out.AlmacenTemporal;
+import com.iris.application.port.out.BuscadorFragmentos;
 import com.iris.application.port.out.CodificadorPassword;
 import com.iris.application.port.out.ColaIndexacion;
 import com.iris.application.port.out.ContadorTokens;
 import com.iris.application.port.out.ExtractorTexto;
 import com.iris.application.port.out.GeneradorEmbeddings;
+import com.iris.application.port.out.RedactorRespuestas;
 import com.iris.application.port.out.GeneradorToken;
+import com.iris.domain.consulta.ConsultaRepositorio;
 import com.iris.domain.documento.DocumentoRepositorio;
 import com.iris.domain.documento.FragmentoRepositorio;
 import com.iris.domain.evento.EventoRepositorio;
@@ -63,6 +69,23 @@ public class CasosDeUsoConfig {
                                   AlmacenTemporal almacen, ColaIndexacion cola,
                                   DocumentosPropiedades propiedades) {
         return new SubirDocumento(eventos, documentos, almacen, cola, propiedades.tamanoMaximo().toBytes());
+    }
+
+    @Bean
+    BuscarFragmentos buscarFragmentos(EventoRepositorio eventos, GeneradorEmbeddings embeddings,
+                                      BuscadorFragmentos buscador) {
+        return new BuscarFragmentos(eventos, embeddings, buscador);
+    }
+
+    @Bean
+    ConsultarIris consultarIris(BuscarFragmentos buscarFragmentos, RedactorRespuestas redactor,
+                                ConsultaRepositorio consultas, ConsultaPropiedades propiedades) {
+        return new ConsultarIris(buscarFragmentos, redactor, consultas, propiedades.umbralSimilitud());
+    }
+
+    @Bean
+    HistorialConsultas historialConsultas(EventoRepositorio eventos, ConsultaRepositorio consultas) {
+        return new HistorialConsultas(eventos, consultas);
     }
 
     @Bean

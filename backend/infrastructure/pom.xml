@@ -75,6 +75,13 @@
             <artifactId>spring-ai-google-genai-embedding</artifactId>
         </dependency>
 
+        <!-- Chat con Groq vía Spring AI: Groq expone una API compatible con OpenAI, así que
+             usamos el módulo de OpenAI apuntando a la URL de Groq. Módulo "manual" (sin autoconfiguración) -->
+        <dependency>
+            <groupId>org.springframework.ai</groupId>
+            <artifactId>spring-ai-openai</artifactId>
+        </dependency>
+
         <!-- Lectura de PDF. Spring Boot no maneja su versión, así que la fijamos (verificada: 3.0.8) -->
         <dependency>
             <groupId>org.apache.pdfbox</groupId>
