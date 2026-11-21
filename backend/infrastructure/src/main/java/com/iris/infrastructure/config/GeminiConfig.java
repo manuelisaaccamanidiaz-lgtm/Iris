@@ -1,7 +1,7 @@
 package com.iris.infrastructure.config;
 
 import org.springframework.ai.embedding.EmbeddingModel;
-import org.springframework.ai.google.genai.GoogleGenAiEmbeddingConnectionDetails;
+import org.springframework.ai.google.genai.embedding.GoogleGenAiEmbeddingConnectionDetails;
 import org.springframework.ai.google.genai.text.GoogleGenAiTextEmbeddingModel;
 import org.springframework.ai.google.genai.text.GoogleGenAiTextEmbeddingOptions;
 import org.springframework.ai.google.genai.text.GoogleGenAiTextEmbeddingOptions.TaskType;
