@@ -53,6 +53,13 @@ public record Documento(
                 creadoEn, Instant.now(), indexadoEn);
     }
 
+    /** Ya sabemos cuántas páginas tiene (después de extraer el texto). */
+    public Documento conPaginas(int paginas) {
+        return new Documento(id, eventoId, subidoPor, nombreArchivo, tamanoBytes, hashSha256, paginas,
+                estado, errorMensaje, modeloEmbedding, dimensiones, rutaTemporal,
+                creadoEn, Instant.now(), indexadoEn);
+    }
+
     /** Indexado con éxito: guardamos trazabilidad (modelo, dimensiones) y ya no hay copia temporal. */
     public Documento marcarIndexado(int paginas, String modeloEmbedding, int dimensiones) {
         Instant ahora = Instant.now();

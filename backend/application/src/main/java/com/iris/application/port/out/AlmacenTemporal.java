@@ -9,6 +9,9 @@ public interface AlmacenTemporal {
     /** Guarda los bytes y devuelve la ruta donde quedaron. */
     String guardar(byte[] contenido);
 
+    /** Lee la copia para procesarla. */
+    byte[] leer(String ruta);
+
     /** Borra la copia. No falla si ya no existe. */
     void borrar(String ruta);
 }

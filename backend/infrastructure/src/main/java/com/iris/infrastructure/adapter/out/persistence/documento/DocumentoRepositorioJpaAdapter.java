@@ -8,6 +8,7 @@ import org.springframework.stereotype.Component;
 
 import com.iris.domain.documento.Documento;
 import com.iris.domain.documento.DocumentoRepositorio;
+import com.iris.domain.documento.EstadoDocumento;
 
 @Component
 class DocumentoRepositorioJpaAdapter implements DocumentoRepositorio {
@@ -21,6 +22,21 @@ class DocumentoRepositorioJpaAdapter implements DocumentoRepositorio {
     @Override
     public Documento guardar(Documento documento) {
         return aDominio(jpa.save(aEntity(documento)));
+    }
+
+    @Override
+    public Optional<Documento> buscarParaProcesar(UUID id) {
+        return jpa.findById(id).map(this::aDominio);
+    }
+
+    @Override
+    public List<UUID> idsPendientes() {
+        return jpa.idsConEstado(List.of(EstadoDocumento.EN_COLA, EstadoDocumento.PROCESANDO));
+    }
+
+    @Override
+    public void eliminar(UUID id) {
+        jpa.deleteById(id);
     }
 
     @Override

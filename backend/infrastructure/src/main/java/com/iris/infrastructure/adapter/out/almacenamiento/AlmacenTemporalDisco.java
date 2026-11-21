@@ -47,6 +47,15 @@ class AlmacenTemporalDisco implements AlmacenTemporal {
     }
 
     @Override
+    public byte[] leer(String ruta) {
+        try {
+            return Files.readAllBytes(Path.of(ruta));
+        } catch (IOException e) {
+            throw new UncheckedIOException("No se encontró la copia temporal del PDF", e);
+        }
+    }
+
+    @Override
     public void borrar(String ruta) {
         if (ruta == null) {
             return;

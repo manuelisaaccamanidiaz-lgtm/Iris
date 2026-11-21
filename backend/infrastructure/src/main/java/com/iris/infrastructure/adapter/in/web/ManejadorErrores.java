@@ -15,6 +15,7 @@ import com.iris.domain.compartido.AccesoDenegadoException;
 import com.iris.domain.compartido.RecursoNoEncontradoException;
 import com.iris.domain.compartido.ReglaDeNegocioException;
 import com.iris.domain.documento.DocumentoDuplicadoException;
+import com.iris.domain.evento.EventoDuplicadoException;
 import com.iris.domain.usuario.EmailYaRegistradoException;
 
 /**
@@ -39,6 +40,11 @@ class ManejadorErrores {
     ProblemDetail faltaArchivo(Exception e) {
         return problema(HttpStatus.BAD_REQUEST, "Falta el archivo",
                 "Envía el PDF como archivo en el campo 'archivo' (multipart/form-data)");
+    }
+
+    @ExceptionHandler(EventoDuplicadoException.class)
+    ProblemDetail eventoDuplicado(EventoDuplicadoException e) {
+        return problema(HttpStatus.CONFLICT, "Evento duplicado", e.getMessage()); // 409
     }
 
     /** Spring corta el archivo antes de llegar al controlador si supera spring.servlet.multipart.max-file-size */

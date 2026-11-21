@@ -6,12 +6,14 @@ import java.util.HexFormat;
 import java.util.UUID;
 
 import com.iris.application.port.out.AlmacenTemporal;
+import com.iris.application.port.out.ColaIndexacion;
 import com.iris.domain.compartido.RecursoNoEncontradoException;
 import com.iris.domain.compartido.ReglaDeNegocioException;
 import com.iris.domain.documento.ArchivoPdf;
 import com.iris.domain.documento.Documento;
 import com.iris.domain.documento.DocumentoDuplicadoException;
 import com.iris.domain.documento.DocumentoRepositorio;
+import com.iris.domain.documento.EstadoDocumento;
 import com.iris.domain.evento.EventoDeMiembro;
 import com.iris.domain.evento.EventoRepositorio;
 
@@ -21,13 +23,15 @@ public class SubirDocumento {
     private final EventoRepositorio eventos;
     private final DocumentoRepositorio documentos;
     private final AlmacenTemporal almacen;
+    private final ColaIndexacion cola;
     private final long tamanoMaximoBytes;
 
     public SubirDocumento(EventoRepositorio eventos, DocumentoRepositorio documentos,
-                          AlmacenTemporal almacen, long tamanoMaximoBytes) {
+                          AlmacenTemporal almacen, ColaIndexacion cola, long tamanoMaximoBytes) {
         this.eventos = eventos;
         this.documentos = documentos;
         this.almacen = almacen;
+        this.cola = cola;
         this.tamanoMaximoBytes = tamanoMaximoBytes;
     }
 
@@ -46,19 +50,28 @@ public class SubirDocumento {
 
         // 3. ¿Ya lo habían subido a este evento? Comparamos huellas, no nombres
         String hash = sha256(contenido);
+        //    Excepción: si el anterior terminó en ERROR, dejamos subirlo otra vez (reemplaza al fallido)
         documentos.buscarPorEventoYHash(eventoId, hash).ifPresent(existente -> {
-            throw new DocumentoDuplicadoException(existente.nombreArchivo());
+            if (existente.estado() != EstadoDocumento.ERROR) {
+                throw new DocumentoDuplicadoException(existente.nombreArchivo());
+            }
+            documentos.eliminar(existente.id());
         });
 
         // 4. Copia temporal primero, registro después. Si el registro falla,
         //    borramos la copia para no dejar archivos huérfanos en el disco
         String ruta = almacen.guardar(contenido);
+        Documento guardado;
         try {
-            return documentos.guardar(Documento.recibir(eventoId, usuarioId, archivo, hash, ruta));
+            guardado = documentos.guardar(Documento.recibir(eventoId, usuarioId, archivo, hash, ruta));
         } catch (RuntimeException e) {
             almacen.borrar(ruta);
             throw e;
         }
+
+        // 5. A la fila. encolar() regresa al instante: el controlador responde 202 sin esperar
+        cola.encolar(guardado.id());
+        return guardado;
     }
 
     /** Huella SHA-256 en hexadecimal (64 caracteres). Si cambia 1 byte del PDF, cambia toda la huella. */
