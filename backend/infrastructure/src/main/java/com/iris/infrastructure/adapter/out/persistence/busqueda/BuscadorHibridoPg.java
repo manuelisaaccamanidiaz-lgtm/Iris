@@ -54,8 +54,9 @@ class BuscadorHibridoPg implements BuscadorFragmentos {
                 -- RRF. FULL OUTER JOIN: un fragmento puede estar en una sola de las dos listas
                 SELECT COALESCE(v.id, t.id) AS id,
                        v.distancia,
-                       v.rango AS rango_vector,
-                       t.rango AS rango_texto,
+                       -- ROW_NUMBER() devuelve bigint; lo pasamos a int porque en Java lo leemos como Integer
+                       v.rango::int AS rango_vector,
+                       t.rango::int AS rango_texto,
                        COALESCE(1.0 / (:k + v.rango), 0) + COALESCE(1.0 / (:k + t.rango), 0) AS rrf
                 FROM vec v FULL OUTER JOIN txt t ON v.id = t.id
             )
@@ -102,8 +103,8 @@ class BuscadorHibridoPg implements BuscadorFragmentos {
                     rs.getString("seccion"),
                     rs.getString("contenido"),
                     distancia == null ? null : 1.0 - distancia,  // similitud coseno
-                    (Integer) rs.getObject("rango_vector", Integer.class),
-                    (Integer) rs.getObject("rango_texto", Integer.class),
+                    rs.getObject("rango_vector", Integer.class),   // null si no salió en esa lista
+                    rs.getObject("rango_texto", Integer.class),
                     rs.getDouble("rrf"));
         });
     }
