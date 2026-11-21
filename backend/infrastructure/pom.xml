@@ -68,6 +68,13 @@
             <artifactId>spring-boot-starter-security-oauth2-resource-server</artifactId>
         </dependency>
 
+        <!-- Embeddings con Gemini vía Spring AI. Módulo "manual" (sin autoconfiguración):
+             creamos nosotros los modelos para tener uno por taskType (documento / consulta) -->
+        <dependency>
+            <groupId>org.springframework.ai</groupId>
+            <artifactId>spring-ai-google-genai-embedding</artifactId>
+        </dependency>
+
         <!-- Lectura de PDF. Spring Boot no maneja su versión, así que la fijamos (verificada: 3.0.8) -->
         <dependency>
             <groupId>org.apache.pdfbox</groupId>

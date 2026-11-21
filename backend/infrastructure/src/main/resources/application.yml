@@ -45,6 +45,13 @@ iris:
     directorio-temporal: ${IRIS_DIRECTORIO_TEMPORAL:${java.io.tmpdir}/iris}
     # Debe coincidir con spring.servlet.multipart.max-file-size
     tamano-maximo: 20MB
+  ia:
+    embeddings:
+      # Clave de Google AI Studio. Viene del .env (NUNCA en el código)
+      api-key: ${GEMINI_API_KEY}
+      modelo: gemini-embedding-001
+      # Debe coincidir con vector(1536) de la tabla fragmentos
+      dimensiones: 1536
   cors:
     # Frontend de React con Vite (puerto por defecto 5173). Varios: separados por coma
     origenes: ${CORS_ORIGENES:http://localhost:5173}
