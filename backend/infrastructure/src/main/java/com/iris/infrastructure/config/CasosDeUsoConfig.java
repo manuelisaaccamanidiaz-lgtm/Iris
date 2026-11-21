@@ -6,6 +6,7 @@ import org.springframework.context.annotation.Configuration;
 import com.iris.application.auth.CrearAdministradorInicial;
 import com.iris.application.auth.IniciarSesion;
 import com.iris.application.auth.RegistrarUsuario;
+import com.iris.application.documento.Fragmentador;
 import com.iris.application.documento.ListarDocumentos;
 import com.iris.application.documento.ProcesarDocumento;
 import com.iris.application.documento.SubirDocumento;
@@ -14,9 +15,12 @@ import com.iris.application.evento.ListarEventos;
 import com.iris.application.port.out.AlmacenTemporal;
 import com.iris.application.port.out.CodificadorPassword;
 import com.iris.application.port.out.ColaIndexacion;
+import com.iris.application.port.out.ContadorTokens;
 import com.iris.application.port.out.ExtractorTexto;
+import com.iris.application.port.out.GeneradorEmbeddings;
 import com.iris.application.port.out.GeneradorToken;
 import com.iris.domain.documento.DocumentoRepositorio;
+import com.iris.domain.documento.FragmentoRepositorio;
 import com.iris.domain.evento.EventoRepositorio;
 import com.iris.domain.usuario.UsuarioRepositorio;
 
@@ -62,9 +66,15 @@ public class CasosDeUsoConfig {
     }
 
     @Bean
-    ProcesarDocumento procesarDocumento(DocumentoRepositorio documentos, AlmacenTemporal almacen,
-                                        ExtractorTexto extractor) {
-        return new ProcesarDocumento(documentos, almacen, extractor);
+    Fragmentador fragmentador(ContadorTokens contador) {
+        return new Fragmentador(contador);
+    }
+
+    @Bean
+    ProcesarDocumento procesarDocumento(DocumentoRepositorio documentos, FragmentoRepositorio fragmentos,
+                                        AlmacenTemporal almacen, ExtractorTexto extractor,
+                                        Fragmentador fragmentador, GeneradorEmbeddings embeddings) {
+        return new ProcesarDocumento(documentos, fragmentos, almacen, extractor, fragmentador, embeddings);
     }
 
     @Bean
