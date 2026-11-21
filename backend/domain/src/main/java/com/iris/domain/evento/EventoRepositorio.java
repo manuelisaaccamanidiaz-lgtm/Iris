@@ -5,16 +5,20 @@ import java.util.Optional;
 import java.util.UUID;
 
 /**
- * Puerto de salida para eventos. Fíjate: NO existe "buscarPorId(id)" a secas.
- * Toda búsqueda exige el usuarioId: el multi-tenant está en la firma del método.
+ * Puerto de salida para eventos. Sigue sin existir "buscarPorId(id)" a secas:
+ * toda búsqueda se hace COMO miembro, y si no lo eres, el evento "no existe" para ti.
  */
 public interface EventoRepositorio {
 
-    Evento guardar(Evento evento);
+    /** Guarda el evento Y registra a su creador como PROPIETARIO, todo o nada (una transacción). */
+    EventoDeMiembro crearConPropietario(Evento evento);
 
-    /** Eventos de un usuario, del más próximo al más lejano. */
-    List<Evento> listarPorUsuario(UUID usuarioId);
+    /** ¿Este creador ya tiene un evento con ese nombre (sin importar mayúsculas) que empieza ese día? */
+    boolean existeDelCreador(UUID creadoPor, String nombre, java.time.LocalDate fechaInicio);
 
-    /** Vacío si no existe O si es de otro usuario. */
-    Optional<Evento> buscarPorIdYUsuario(UUID id, UUID usuarioId);
+    /** Eventos donde el usuario es miembro (cualquier rol), del más próximo al más lejano. */
+    List<EventoDeMiembro> listarDeMiembro(UUID usuarioId);
+
+    /** Vacío si el evento no existe O si el usuario no es miembro. */
+    Optional<EventoDeMiembro> buscarComoMiembro(UUID eventoId, UUID usuarioId);
 }

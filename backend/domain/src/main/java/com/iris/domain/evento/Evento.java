@@ -7,13 +7,14 @@ import java.util.UUID;
 import com.iris.domain.compartido.ReglaDeNegocioException;
 
 /**
- * Un evento (convención, congreso, feria...). Siempre tiene dueño: usuarioId.
+ * Un evento (convención, congreso, feria...). Quién puede verlo o editarlo NO está aquí:
+ * eso lo dicen sus miembros (MiembroEvento). creadoPor es solo informativo.
  *
  * @param id null mientras no se ha guardado
  */
 public record Evento(
         UUID id,
-        UUID usuarioId,
+        UUID creadoPor,
         String nombre,
         String descripcion,
         String lugar,
@@ -22,8 +23,8 @@ public record Evento(
         Instant creadoEn) {
 
     public Evento {
-        if (usuarioId == null) {
-            throw new ReglaDeNegocioException("El evento debe tener un dueño");
+        if (creadoPor == null) {
+            throw new ReglaDeNegocioException("El evento debe tener un creador");
         }
         if (nombre == null || nombre.isBlank()) {
             throw new ReglaDeNegocioException("El nombre del evento es obligatorio");
@@ -49,8 +50,8 @@ public record Evento(
         }
     }
 
-    public static Evento crear(UUID usuarioId, String nombre, String descripcion, String lugar,
+    public static Evento crear(UUID creadoPor, String nombre, String descripcion, String lugar,
                                LocalDate fechaInicio, LocalDate fechaFin) {
-        return new Evento(null, usuarioId, nombre, descripcion, lugar, fechaInicio, fechaFin, Instant.now());
+        return new Evento(null, creadoPor, nombre, descripcion, lugar, fechaInicio, fechaFin, Instant.now());
     }
 }

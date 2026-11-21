@@ -33,7 +33,7 @@ import com.nimbusds.jose.jwk.source.ImmutableSecret;
 
 /** El "portero" de Iris: qué rutas son públicas, cuáles piden token y cómo se valida. */
 @Configuration
-@EnableConfigurationProperties({JwtPropiedades.class, CorsPropiedades.class})
+@EnableConfigurationProperties({JwtPropiedades.class, CorsPropiedades.class, DocumentosPropiedades.class})
 public class SecurityConfig {
 
     @Bean
