@@ -11,6 +11,8 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
+
+import jakarta.servlet.DispatcherType;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
@@ -33,7 +35,8 @@ import com.nimbusds.jose.jwk.source.ImmutableSecret;
 
 /** El "portero" de Iris: qué rutas son públicas, cuáles piden token y cómo se valida. */
 @Configuration
-@EnableConfigurationProperties({JwtPropiedades.class, CorsPropiedades.class, DocumentosPropiedades.class})
+@EnableConfigurationProperties({JwtPropiedades.class, CorsPropiedades.class, DocumentosPropiedades.class,
+        ConsultaPropiedades.class})
 public class SecurityConfig {
 
     @Bean
@@ -48,6 +51,9 @@ public class SecurityConfig {
             // Stateless: el servidor no crea sesiones; cada petición trae su token
             .sessionManagement(s -> s.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(rutas -> rutas
+                // El streaming (SSE) termina con un "despacho asíncrono" interno de la MISMA petición,
+                // que ya fue autorizada al inicio. Sin esto, Spring Security la revisa de nuevo y la rechaza
+                .dispatcherTypeMatchers(DispatcherType.ASYNC, DispatcherType.ERROR).permitAll()
                 // Públicas: registro, login y la ruta de salud
                 .requestMatchers(HttpMethod.POST, "/api/auth/registro", "/api/auth/login").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/salud").permitAll()

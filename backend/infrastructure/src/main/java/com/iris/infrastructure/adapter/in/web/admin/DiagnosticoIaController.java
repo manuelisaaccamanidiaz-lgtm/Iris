@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.iris.application.port.out.GeneradorEmbeddings;
+import com.iris.application.port.out.RedactorRespuestas;
 
 /**
  * Herramienta de diagnóstico SOLO para ADMIN (/api/admin/** lo protege SecurityConfig):
@@ -22,9 +23,33 @@ import com.iris.application.port.out.GeneradorEmbeddings;
 class DiagnosticoIaController {
 
     private final GeneradorEmbeddings embeddings;
+    private final RedactorRespuestas redactor;
 
-    DiagnosticoIaController(GeneradorEmbeddings embeddings) {
+    DiagnosticoIaController(GeneradorEmbeddings embeddings, RedactorRespuestas redactor) {
         this.embeddings = embeddings;
+        this.redactor = redactor;
+    }
+
+    /** GET /api/admin/diagnostico/chat?mensaje=...  -> ¿funciona la clave de Groq? (sin RAG) */
+    @GetMapping("/chat")
+    Map<String, Object> chat(@RequestParam String mensaje) {
+        long inicio = System.currentTimeMillis();
+        Map<String, Object> r = new LinkedHashMap<>();
+        r.put("modelo", redactor.modelo());
+        try {
+            r.put("respuesta", redactor.redactar(
+                    "Eres un asistente de pruebas. Responde en español en una sola oración.", mensaje));
+        } catch (Exception e) {
+            // Solo en este endpoint de ADMIN mostramos la causa real: es una herramienta de diagnóstico
+            Throwable causa = e;
+            while (causa.getCause() != null && causa.getCause() != causa) {
+                causa = causa.getCause();
+            }
+            r.put("error", e.getClass().getSimpleName() + ": " + e.getMessage());
+            r.put("causaRaiz", causa.getClass().getSimpleName() + ": " + causa.getMessage());
+        }
+        r.put("milisegundos", System.currentTimeMillis() - inicio);
+        return r;
     }
 
     /** GET /api/admin/diagnostico/similitud?a=...&b=...  -> qué tan parecidos son dos textos (0 a 1). */

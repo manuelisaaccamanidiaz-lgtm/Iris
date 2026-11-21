@@ -23,4 +23,19 @@ public class AsyncConfig {
         pool.initialize();
         return pool;
     }
+
+    /**
+     * Pool SEPARADO para el chat en streaming: cada conversación ocupa un hilo mientras Groq
+     * escribe. Separado del indexador para que subir 10 PDF no deje a Iris sin "voz".
+     */
+    @Bean
+    ThreadPoolTaskExecutor chatExecutor() {
+        ThreadPoolTaskExecutor pool = new ThreadPoolTaskExecutor();
+        pool.setCorePoolSize(4);
+        pool.setMaxPoolSize(4);
+        pool.setQueueCapacity(20);
+        pool.setThreadNamePrefix("chat-");
+        pool.initialize();
+        return pool;
+    }
 }

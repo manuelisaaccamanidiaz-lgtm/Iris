@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.iris.application.consulta.BuscarFragmentos;
+import com.iris.application.consulta.PromptRag;
 import com.iris.application.port.out.BuscadorFragmentos.FragmentoEncontrado;
 
 /**
@@ -31,6 +32,21 @@ class BusquedaController {
                            @RequestParam("q") String pregunta) {
         UUID usuarioId = UUID.fromString(jwt.getSubject());
         return buscarFragmentos.ejecutar(usuarioId, eventoId, pregunta).stream().map(Resultado::de).toList();
+    }
+
+    /**
+     * "Rayos X del prompt": muestra EXACTAMENTE lo que se le enviaría a Groq para esta pregunta
+     * (reglas + fragmentos numerados), sin llamarlo. Ideal para entender y depurar el RAG.
+     */
+    @GetMapping("/api/eventos/{eventoId}/busqueda/prompt")
+    PromptVisible prompt(@AuthenticationPrincipal Jwt jwt, @PathVariable UUID eventoId,
+                         @RequestParam("q") String pregunta) {
+        UUID usuarioId = UUID.fromString(jwt.getSubject());
+        List<FragmentoEncontrado> fragmentos = buscarFragmentos.ejecutar(usuarioId, eventoId, pregunta);
+        return new PromptVisible(PromptRag.instrucciones(), PromptRag.mensaje(pregunta, fragmentos));
+    }
+
+    record PromptVisible(String instrucciones, String mensaje) {
     }
 
     record Resultado(String documento, String paginas, String seccion, Integer rangoVector,
