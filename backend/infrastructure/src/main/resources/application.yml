@@ -63,8 +63,9 @@ iris:
       max-tokens: 800
   consulta:
     # Un fragmento que NO comparte palabras con la pregunta solo cuenta como evidencia si su
-    # similitud supera este valor. Se calibra mirando "similitud" en GET /busqueda (ver Día 3)
-    umbral-similitud: 0.60
+    # similitud supera este valor. Calibrado con datos reales (Día 3): preguntas sin relación
+    # con el evento ~0.40; relacionadas con sinónimos ~0.55. Lo dudoso lo filtra la regla 3 del prompt
+    umbral-similitud: 0.50
   cors:
     # Frontend de React con Vite (puerto por defecto 5173). Varios: separados por coma
     origenes: ${CORS_ORIGENES:http://localhost:5173}
