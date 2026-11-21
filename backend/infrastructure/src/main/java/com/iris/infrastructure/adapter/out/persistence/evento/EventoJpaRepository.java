@@ -10,6 +10,13 @@ import org.springframework.data.repository.query.Param;
 
 interface EventoJpaRepository extends JpaRepository<EventoEntity, UUID> {
 
+    @Query("""
+            select count(e) > 0 from EventoEntity e
+            where e.creadoPor = :creadoPor and lower(e.nombre) = lower(:nombre) and e.fechaInicio = :fechaInicio
+            """)
+    boolean existeDelCreador(@Param("creadoPor") UUID creadoPor, @Param("nombre") String nombre,
+                             @Param("fechaInicio") java.time.LocalDate fechaInicio);
+
     // JOIN con miembros: solo los eventos donde :usuarioId es miembro, junto con su rol
     @Query("""
             select new com.iris.infrastructure.adapter.out.persistence.evento.EventoConRolFila(e, m.rol)

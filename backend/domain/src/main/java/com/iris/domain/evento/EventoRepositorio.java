@@ -13,6 +13,9 @@ public interface EventoRepositorio {
     /** Guarda el evento Y registra a su creador como PROPIETARIO, todo o nada (una transacción). */
     EventoDeMiembro crearConPropietario(Evento evento);
 
+    /** ¿Este creador ya tiene un evento con ese nombre (sin importar mayúsculas) que empieza ese día? */
+    boolean existeDelCreador(UUID creadoPor, String nombre, java.time.LocalDate fechaInicio);
+
     /** Eventos donde el usuario es miembro (cualquier rol), del más próximo al más lejano. */
     List<EventoDeMiembro> listarDeMiembro(UUID usuarioId);
 

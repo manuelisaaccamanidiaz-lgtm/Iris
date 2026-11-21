@@ -42,6 +42,12 @@ class EventoRepositorioJpaAdapter implements EventoRepositorio {
 
     @Override
     @Transactional(readOnly = true)
+    public boolean existeDelCreador(UUID creadoPor, String nombre, java.time.LocalDate fechaInicio) {
+        return eventos.existeDelCreador(creadoPor, nombre, fechaInicio);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
     public List<EventoDeMiembro> listarDeMiembro(UUID usuarioId) {
         return eventos.listarDeMiembro(usuarioId).stream().map(this::aDominio).toList();
     }
