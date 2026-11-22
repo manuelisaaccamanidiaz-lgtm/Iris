@@ -5,6 +5,7 @@ import java.time.LocalDate;
 import java.util.UUID;
 
 import com.iris.domain.compartido.ReglaDeNegocioException;
+import com.iris.domain.evento.RolEnEvento;
 
 /**
  * Un pendiente del evento. Puede tener fecha límite y un responsable (miembro del evento).
@@ -67,5 +68,14 @@ public record Tarea(
 
     public boolean esResponsable(UUID usuarioId) {
         return responsableId != null && responsableId.equals(usuarioId);
+    }
+
+    /**
+     * Regla de visibilidad (decisión de Isaac, Día 4): el PROPIETARIO ve todas las tareas;
+     * los demás miembros solo las que tienen a su cargo. Lo que no puedes ver, tampoco
+     * lo puedes editar, borrar ni cambiar de estado (para ti esa tarea "no existe": 404).
+     */
+    public boolean visiblePara(UUID usuarioId, RolEnEvento rol) {
+        return rol == RolEnEvento.PROPIETARIO || esResponsable(usuarioId);
     }
 }

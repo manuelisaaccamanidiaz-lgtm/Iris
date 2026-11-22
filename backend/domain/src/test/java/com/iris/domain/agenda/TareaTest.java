@@ -9,21 +9,23 @@ import java.util.UUID;
 import org.junit.jupiter.api.Test;
 
 class TareaTest {
-
-    @Test 
+    @Test
     void marcarHechaPoneFechaDeCompletado() {
         Tarea tarea = Tarea.crear(UUID.randomUUID(), new Tarea.Datos("Pagar", null, null, null), OrigenActividad.MANUAL, null);
-        tarea.marcarHecha();
 
-        assertNotNull(tarea.completadaEn());
-        assertEquals(EstadoTarea.HECHA, tarea.estado());
+        Tarea hecha = tarea.marcarHecha();          // guardamos la NUEVA
+
+        assertEquals(EstadoTarea.HECHA, hecha.estado());
+        assertNotNull(hecha.completadaEn());
     }
 
-    @Test 
+    @Test
     void reabrirBorraLaFechaDeCompletado() {
         Tarea tarea = Tarea.crear(UUID.randomUUID(), new Tarea.Datos("Pagar", null, null, null), OrigenActividad.MANUAL, null);
-        tarea.marcarHecha();
 
-        assertNull(tarea.completadaEn());
+        Tarea reabierta = tarea.marcarHecha().reabrir();   // encadenado: cada paso devuelve una nueva
+
+        assertEquals(EstadoTarea.PENDIENTE, reabierta.estado());
+        assertNull(reabierta.completadaEn());
     }
 }

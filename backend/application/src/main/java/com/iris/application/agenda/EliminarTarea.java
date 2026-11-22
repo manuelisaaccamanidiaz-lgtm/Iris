@@ -5,6 +5,7 @@ import java.util.UUID;
 import com.iris.application.evento.AccesoEvento;
 import com.iris.domain.agenda.TareaRepositorio;
 import com.iris.domain.compartido.RecursoNoEncontradoException;
+import com.iris.domain.evento.EventoDeMiembro;
 
 /** Caso de uso: borrar una tarea (EDITOR o PROPIETARIO). */
 public class EliminarTarea {
@@ -18,8 +19,9 @@ public class EliminarTarea {
     }
 
     public void ejecutar(UUID usuarioId, UUID eventoId, UUID tareaId) {
-        acceso.comoEditor(eventoId, usuarioId);
+        EventoDeMiembro evento = acceso.comoEditor(eventoId, usuarioId);
         tareas.buscarEnEvento(tareaId, eventoId)
+                .filter(t -> t.visiblePara(usuarioId, evento.miRol()))   // si no la puede ver, "no existe"
                 .orElseThrow(() -> new RecursoNoEncontradoException("Tarea no encontrada"));
         tareas.eliminar(tareaId);
     }

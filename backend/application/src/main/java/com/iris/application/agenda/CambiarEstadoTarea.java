@@ -28,6 +28,7 @@ public class CambiarEstadoTarea {
     public Tarea ejecutar(UUID usuarioId, UUID eventoId, UUID tareaId, EstadoTarea nuevoEstado) {
         EventoDeMiembro evento = acceso.comoMiembro(eventoId, usuarioId);
         Tarea actual = tareas.buscarEnEvento(tareaId, eventoId)
+                .filter(t -> t.visiblePara(usuarioId, evento.miRol()))   // si no la puede ver, "no existe"
                 .orElseThrow(() -> new RecursoNoEncontradoException("Tarea no encontrada"));
 
         if (!evento.miRol().puedeEditar() && !actual.esResponsable(usuarioId)) {
