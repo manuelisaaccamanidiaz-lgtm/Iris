@@ -1,6 +1,7 @@
 package com.iris.infrastructure.adapter.out.persistence.usuario;
 
 import java.util.Optional;
+import java.util.UUID;
 
 import org.springframework.stereotype.Component;
 
@@ -35,6 +36,11 @@ class UsuarioRepositorioJpaAdapter implements UsuarioRepositorio {
     @Override
     public boolean existePorEmail(Email email) {
         return jpa.existePorEmailNormalizado(email.normalizado());
+    }
+
+    @Override
+    public Optional<Usuario> buscarPorId(UUID id) {
+        return jpa.findById(id).map(this::aDominio);
     }
 
     private UsuarioEntity aEntity(Usuario u) {
