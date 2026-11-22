@@ -3,6 +3,15 @@ package com.iris.infrastructure.config;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
+import com.iris.application.agenda.CambiarEstadoTarea;
+import com.iris.application.agenda.CrearSesion;
+import com.iris.application.agenda.CrearTarea;
+import com.iris.application.agenda.EditarSesion;
+import com.iris.application.agenda.EditarTarea;
+import com.iris.application.agenda.EliminarSesion;
+import com.iris.application.agenda.EliminarTarea;
+import com.iris.application.agenda.ListarSesiones;
+import com.iris.application.agenda.ListarTareas;
 import com.iris.application.auth.CrearAdministradorInicial;
 import com.iris.application.auth.IniciarSesion;
 import com.iris.application.auth.RegistrarUsuario;
@@ -13,6 +22,7 @@ import com.iris.application.documento.Fragmentador;
 import com.iris.application.documento.ListarDocumentos;
 import com.iris.application.documento.ProcesarDocumento;
 import com.iris.application.documento.SubirDocumento;
+import com.iris.application.evento.AccesoEvento;
 import com.iris.application.evento.CrearEvento;
 import com.iris.application.evento.ListarEventos;
 import com.iris.application.port.out.AlmacenTemporal;
@@ -24,6 +34,8 @@ import com.iris.application.port.out.ExtractorTexto;
 import com.iris.application.port.out.GeneradorEmbeddings;
 import com.iris.application.port.out.RedactorRespuestas;
 import com.iris.application.port.out.GeneradorToken;
+import com.iris.domain.agenda.SesionRepositorio;
+import com.iris.domain.agenda.TareaRepositorio;
 import com.iris.domain.consulta.ConsultaRepositorio;
 import com.iris.domain.documento.DocumentoRepositorio;
 import com.iris.domain.documento.FragmentoRepositorio;
@@ -103,5 +115,57 @@ public class CasosDeUsoConfig {
     @Bean
     ListarDocumentos listarDocumentos(EventoRepositorio eventos, DocumentoRepositorio documentos) {
         return new ListarDocumentos(eventos, documentos);
+    }
+
+    // ---------- Agenda (Día 4.1) ----------
+
+    @Bean
+    AccesoEvento accesoEvento(EventoRepositorio eventos) {
+        return new AccesoEvento(eventos);
+    }
+
+    @Bean
+    CrearSesion crearSesion(AccesoEvento acceso, SesionRepositorio sesiones) {
+        return new CrearSesion(acceso, sesiones);
+    }
+
+    @Bean
+    ListarSesiones listarSesiones(AccesoEvento acceso, SesionRepositorio sesiones) {
+        return new ListarSesiones(acceso, sesiones);
+    }
+
+    @Bean
+    EditarSesion editarSesion(AccesoEvento acceso, SesionRepositorio sesiones) {
+        return new EditarSesion(acceso, sesiones);
+    }
+
+    @Bean
+    EliminarSesion eliminarSesion(AccesoEvento acceso, SesionRepositorio sesiones) {
+        return new EliminarSesion(acceso, sesiones);
+    }
+
+    @Bean
+    CrearTarea crearTarea(AccesoEvento acceso, TareaRepositorio tareas) {
+        return new CrearTarea(acceso, tareas);
+    }
+
+    @Bean
+    ListarTareas listarTareas(AccesoEvento acceso, TareaRepositorio tareas) {
+        return new ListarTareas(acceso, tareas);
+    }
+
+    @Bean
+    EditarTarea editarTarea(AccesoEvento acceso, TareaRepositorio tareas) {
+        return new EditarTarea(acceso, tareas);
+    }
+
+    @Bean
+    CambiarEstadoTarea cambiarEstadoTarea(AccesoEvento acceso, TareaRepositorio tareas) {
+        return new CambiarEstadoTarea(acceso, tareas);
+    }
+
+    @Bean
+    EliminarTarea eliminarTarea(AccesoEvento acceso, TareaRepositorio tareas) {
+        return new EliminarTarea(acceso, tareas);
     }
 }
