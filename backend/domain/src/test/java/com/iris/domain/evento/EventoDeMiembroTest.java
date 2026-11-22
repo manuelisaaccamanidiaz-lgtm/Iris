@@ -8,7 +8,7 @@ import java.util.UUID;
 
 import org.junit.jupiter.api.Test;
 
-import com.iris.domain.compartido.ConflictoException;
+import com.iris.domain.compartido.AccesoDenegadoException;
 
 class EventoDeMiembroTest {
 
@@ -21,10 +21,10 @@ class EventoDeMiembroTest {
     void unCopropietarioNoPuedeQuitarAOtroPropietario() {
         // Arrange: yo soy el copropietario; el objetivo es OTRO propietario
         EventoDeMiembro comoCopropietario = new EventoDeMiembro(evento, RolEnEvento.PROPIETARIO);
-        MiembroEvento otroPropietario = new MiembroEvento(evento.id(), UUID.randomUUID(), "Luis",
-                "luis@mail.com", RolEnEvento.PROPIETARIO, Instant.now(), null);
+        MiembroEvento otroPropietario = new MiembroEvento(UUID.randomUUID(), UUID.randomUUID(), "Luis",
+        "luis@mail.com", RolEnEvento.PROPIETARIO, Instant.now(), null);
 
         // Act + Assert
-        assertThrows(ConflictoException.class, () -> comoCopropietario.exigirPuedeGestionar(otroPropietario, copropietario));
+        assertThrows(AccesoDenegadoException.class,() -> comoCopropietario.exigirPuedeGestionar(otroPropietario, copropietario));
     }
 }
