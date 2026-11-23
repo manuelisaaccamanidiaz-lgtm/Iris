@@ -61,8 +61,8 @@ class TareaRepositorioJpaAdapter implements TareaRepositorio {
     }
 
     @Override
-    public List<Tarea> listarPendientesQueVencenHasta(LocalDate hasta) {
-        return jpa.findByEstadoAndFechaLimiteLessThanEqual(EstadoTarea.PENDIENTE, hasta).stream()
+    public List<Tarea> listarPendientesQueVencenHasta(LocalDate hasta, LocalDate hoy) {
+        return jpa.pendientesQueVencenHasta(EstadoTarea.PENDIENTE, hasta, hoy).stream()
                 .map(this::aDominio).toList();
     }
 

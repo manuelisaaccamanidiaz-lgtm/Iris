@@ -32,7 +32,7 @@ public class EnviarRecordatorios {
     /** @return cuántos recordatorios NUEVOS se enviaron (los repetidos no cuentan) */
     public int ejecutar(LocalDate hoy) {
         int enviados = 0;
-        for (Tarea t : tareas.listarPendientesQueVencenHasta(hoy.plusDays(1))) {
+        for (Tarea t : tareas.listarPendientesQueVencenHasta(hoy.plusDays(1), hoy)) {
             Optional<TipoNotificacion> tipo = TipoNotificacion.recordatorioPara(t.fechaLimite(), hoy);
             // registrarSiEsNuevo es la "memoria": si ya se envió, la PK de la V11 lo frena
             if (tipo.isEmpty() || !recordatorios.registrarSiEsNuevo(t.id(), tipo.get(), t.fechaLimite())) {

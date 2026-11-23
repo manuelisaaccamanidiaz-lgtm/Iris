@@ -21,6 +21,9 @@ public interface TareaRepositorio {
 
     void eliminar(UUID tareaId);
 
-    /** Para el despertador (4.3): tareas PENDIENTES de TODOS los eventos con fecha límite <= hasta. */
-    List<Tarea> listarPendientesQueVencenHasta(LocalDate hasta);
+    /**
+     * Para el despertador (4.3): tareas PENDIENTES con fecha límite <= hasta, de TODOS los eventos
+     * que todavía no han terminado (fecha_fin >= hoy). Las de eventos pasados ya no se recuerdan.
+     */
+    List<Tarea> listarPendientesQueVencenHasta(LocalDate hasta, LocalDate hoy);
 }
