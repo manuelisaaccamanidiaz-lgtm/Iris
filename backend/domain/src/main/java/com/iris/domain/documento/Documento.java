@@ -3,7 +3,10 @@ package com.iris.domain.documento;
 import java.time.Instant;
 import java.util.UUID;
 
+import com.iris.domain.compartido.AccesoDenegadoException;
+import com.iris.domain.compartido.ConflictoException;
 import com.iris.domain.compartido.ReglaDeNegocioException;
+import com.iris.domain.evento.RolEnEvento;
 
 /**
  * Un PDF subido a un evento. OJO: no contiene el PDF, solo sus metadatos.
@@ -28,6 +31,22 @@ public record Documento(
         Instant creadoEn,
         Instant actualizadoEn,
         Instant indexadoEn) {
+
+    /**
+     * Guarda de borrado (decisiones de Isaac, Día 4.5):
+     * <ul>
+     *   <li>403 si no soy quien lo subió ni propietario (un editor no borra el documento de otro);</li>
+     *   <li>409 si se está indexando: el indexador escribiría fragmentos de algo que ya no existe.</li>
+     * </ul>
+     */
+    public void exigirQueSePuedaBorrar(UUID yo, RolEnEvento miRol) {
+        if (miRol != RolEnEvento.PROPIETARIO && !yo.equals(subidoPor)) {
+            throw new AccesoDenegadoException("Solo quien subió el documento o un propietario puede borrarlo");
+        }
+        if (estado == EstadoDocumento.PROCESANDO) {
+            throw new ConflictoException("El documento se está indexando; espera a que termine para borrarlo");
+        }
+    }
 
     public Documento {
         if (eventoId == null || nombreArchivo == null || hashSha256 == null || estado == null

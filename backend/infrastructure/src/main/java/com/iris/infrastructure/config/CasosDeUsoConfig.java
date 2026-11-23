@@ -18,6 +18,7 @@ import com.iris.application.auth.RegistrarUsuario;
 import com.iris.application.consulta.BuscarFragmentos;
 import com.iris.application.consulta.ConsultarIris;
 import com.iris.application.consulta.HistorialConsultas;
+import com.iris.application.documento.EliminarDocumento;
 import com.iris.application.documento.Fragmentador;
 import com.iris.application.documento.ListarDocumentos;
 import com.iris.application.documento.ProcesarDocumento;
@@ -309,5 +310,14 @@ public class CasosDeUsoConfig {
     @Bean
     DescartarPropuesta descartarPropuesta(AccesoEvento acceso, PropuestaRepositorio propuestas) {
         return new DescartarPropuesta(acceso, propuestas);
+    }
+
+    // --- Día 4.5 ---
+
+    @Bean
+    EliminarDocumento eliminarDocumento(AccesoEvento acceso, DocumentoRepositorio documentos,
+                                        PropuestaRepositorio propuestas, AlmacenTemporal almacen,
+                                        Transaccion transaccion) {
+        return new EliminarDocumento(acceso, documentos, propuestas, almacen, transaccion);
     }
 }
