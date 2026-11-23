@@ -5,6 +5,7 @@ import java.util.Optional;
 import java.util.UUID;
 
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.iris.domain.documento.Documento;
 import com.iris.domain.documento.DocumentoRepositorio;
@@ -37,6 +38,12 @@ class DocumentoRepositorioJpaAdapter implements DocumentoRepositorio {
     @Override
     public void eliminar(UUID id) {
         jpa.deleteById(id);
+    }
+
+    @Override
+    @Transactional // un DELETE con @Modifying necesita transacción (si ya hay una abierta, se une a ella)
+    public boolean eliminarSiNoSeEstaIndexando(UUID id) {
+        return jpa.borrarSiNoEstaEn(id, EstadoDocumento.PROCESANDO) == 1;
     }
 
     @Override

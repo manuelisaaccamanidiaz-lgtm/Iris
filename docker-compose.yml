@@ -23,5 +23,15 @@ services:
       timeout: 3s
       retries: 10
 
+  # Servidor de correo de PRUEBAS (Día 4.3): recibe por SMTP lo que Iris envía y lo muestra
+  # en http://localhost:8025. Nada sale a Internet. Versión fija, como la de la base de datos
+  mail:
+    image: axllent/mailpit:v1.27
+    container_name: iris-mail
+    restart: unless-stopped
+    ports:
+      - "8025:8025"   # interfaz web
+      - "1025:1025"   # SMTP
+
 volumes:
   iris-db-data:

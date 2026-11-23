@@ -23,6 +23,14 @@ public interface DocumentoRepositorio {
 
     void eliminar(UUID id);
 
+    /**
+     * Borra el documento SOLO si no se está indexando, en una sola sentencia (DELETE ... WHERE estado <> ...).
+     * Así no hay hueco entre "revisar el estado" y "borrar" en el que el indexador pueda empezar.
+     * Los fragmentos se van en CASCADA; las citas del historial y las propuestas decididas quedan (SET NULL).
+     * @return false si no se borró (ya no existía o empezó a indexarse justo en ese instante)
+     */
+    boolean eliminarSiNoSeEstaIndexando(UUID id);
+
     /** Si ya existe un documento con esa huella en el evento, lo devuelve. */
     Optional<Documento> buscarPorEventoYHash(UUID eventoId, String hashSha256);
 

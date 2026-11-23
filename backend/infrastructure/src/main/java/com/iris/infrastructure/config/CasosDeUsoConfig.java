@@ -18,6 +18,7 @@ import com.iris.application.auth.RegistrarUsuario;
 import com.iris.application.consulta.BuscarFragmentos;
 import com.iris.application.consulta.ConsultarIris;
 import com.iris.application.consulta.HistorialConsultas;
+import com.iris.application.documento.EliminarDocumento;
 import com.iris.application.documento.Fragmentador;
 import com.iris.application.documento.ListarDocumentos;
 import com.iris.application.documento.ProcesarDocumento;
@@ -34,10 +35,21 @@ import com.iris.application.invitacion.InvitarAlEvento;
 import com.iris.application.invitacion.ListarInvitacionesDelEvento;
 import com.iris.application.invitacion.MisInvitaciones;
 import com.iris.application.invitacion.RechazarInvitacion;
+import com.iris.application.notificacion.Avisos;
+import com.iris.application.notificacion.EnviarRecordatorios;
+import com.iris.application.notificacion.MisNotificaciones;
+import com.iris.application.notificacion.VencerInvitaciones;
+import com.iris.application.port.out.Notificador;
 import com.iris.application.port.out.Transaccion;
+import com.iris.application.propuesta.AceptarPropuesta;
+import com.iris.application.propuesta.DescartarPropuesta;
+import com.iris.application.propuesta.GenerarPropuestas;
+import com.iris.application.propuesta.ListarPropuestas;
+import com.iris.application.propuesta.RevisarDocumento;
 import com.iris.application.evento.CrearEvento;
 import com.iris.application.evento.ListarEventos;
 import com.iris.application.port.out.AlmacenTemporal;
+import com.iris.application.port.out.AnalizadorDocumentos;
 import com.iris.application.port.out.BuscadorFragmentos;
 import com.iris.application.port.out.CodificadorPassword;
 import com.iris.application.port.out.ColaIndexacion;
@@ -54,6 +66,9 @@ import com.iris.domain.documento.FragmentoRepositorio;
 import com.iris.domain.evento.EventoRepositorio;
 import com.iris.domain.evento.MiembroRepositorio;
 import com.iris.domain.invitacion.InvitacionRepositorio;
+import com.iris.domain.notificacion.NotificacionRepositorio;
+import com.iris.domain.notificacion.RecordatorioRepositorio;
+import com.iris.domain.propuesta.PropuestaRepositorio;
 import com.iris.domain.usuario.UsuarioRepositorio;
 
 /**
@@ -122,8 +137,8 @@ public class CasosDeUsoConfig {
     @Bean
     ProcesarDocumento procesarDocumento(DocumentoRepositorio documentos, FragmentoRepositorio fragmentos,
                                         AlmacenTemporal almacen, ExtractorTexto extractor,
-                                        Fragmentador fragmentador, GeneradorEmbeddings embeddings) {
-        return new ProcesarDocumento(documentos, fragmentos, almacen, extractor, fragmentador, embeddings);
+                                        Fragmentador fragmentador, GeneradorEmbeddings embeddings, Avisos avisos) {
+        return new ProcesarDocumento(documentos, fragmentos, almacen, extractor, fragmentador, embeddings, avisos);
     }
 
     @Bean
@@ -139,8 +154,8 @@ public class CasosDeUsoConfig {
     }
 
     @Bean
-    CrearSesion crearSesion(AccesoEvento acceso, SesionRepositorio sesiones) {
-        return new CrearSesion(acceso, sesiones);
+    CrearSesion crearSesion(AccesoEvento acceso, SesionRepositorio sesiones, Avisos avisos) {
+        return new CrearSesion(acceso, sesiones, avisos);
     }
 
     @Bean
@@ -159,8 +174,8 @@ public class CasosDeUsoConfig {
     }
 
     @Bean
-    CrearTarea crearTarea(AccesoEvento acceso, TareaRepositorio tareas) {
-        return new CrearTarea(acceso, tareas);
+    CrearTarea crearTarea(AccesoEvento acceso, TareaRepositorio tareas, Avisos avisos) {
+        return new CrearTarea(acceso, tareas, avisos);
     }
 
     @Bean
@@ -169,8 +184,8 @@ public class CasosDeUsoConfig {
     }
 
     @Bean
-    EditarTarea editarTarea(AccesoEvento acceso, TareaRepositorio tareas) {
-        return new EditarTarea(acceso, tareas);
+    EditarTarea editarTarea(AccesoEvento acceso, TareaRepositorio tareas, Avisos avisos) {
+        return new EditarTarea(acceso, tareas, avisos);
     }
 
     @Bean
@@ -192,8 +207,9 @@ public class CasosDeUsoConfig {
 
     @Bean
     InvitarAlEvento invitarAlEvento(AccesoEvento acceso, MiembroRepositorio miembros,
-                                    InvitacionRepositorio invitaciones, Transaccion transaccion) {
-        return new InvitarAlEvento(acceso, miembros, invitaciones, transaccion);
+                                    InvitacionRepositorio invitaciones, Transaccion transaccion,
+                                    UsuarioRepositorio usuarios, Avisos avisos) {
+        return new InvitarAlEvento(acceso, miembros, invitaciones, transaccion, usuarios, avisos);
     }
 
     @Bean
@@ -213,8 +229,8 @@ public class CasosDeUsoConfig {
 
     @Bean
     AceptarInvitacion aceptarInvitacion(InvitacionesDelUsuario delUsuario, InvitacionRepositorio invitaciones,
-                                        MiembroRepositorio miembros, Transaccion transaccion) {
-        return new AceptarInvitacion(delUsuario, invitaciones, miembros, transaccion);
+                                        MiembroRepositorio miembros, Transaccion transaccion, Avisos avisos) {
+        return new AceptarInvitacion(delUsuario, invitaciones, miembros, transaccion, avisos);
     }
 
     @Bean
@@ -240,5 +256,68 @@ public class CasosDeUsoConfig {
     @Bean
     SalirDelEvento salirDelEvento(AccesoEvento acceso, MiembroRepositorio miembros) {
         return new SalirDelEvento(acceso, miembros);
+    }
+
+    // --- Día 4.3: notificaciones y recordatorios ---
+
+    @Bean
+    Avisos avisos(MiembroRepositorio miembros, Notificador notificador) {
+        return new Avisos(miembros, notificador);
+    }
+
+    @Bean
+    EnviarRecordatorios enviarRecordatorios(TareaRepositorio tareas, RecordatorioRepositorio recordatorios,
+                                            Avisos avisos) {
+        return new EnviarRecordatorios(tareas, recordatorios, avisos);
+    }
+
+    @Bean
+    VencerInvitaciones vencerInvitaciones(InvitacionRepositorio invitaciones) {
+        return new VencerInvitaciones(invitaciones);
+    }
+
+    @Bean
+    MisNotificaciones misNotificaciones(NotificacionRepositorio notificaciones) {
+        return new MisNotificaciones(notificaciones);
+    }
+
+    // --- Día 4.4: propuestas de Iris ---
+
+    @Bean
+    GenerarPropuestas generarPropuestas(FragmentoRepositorio fragmentos, ContadorTokens contador,
+                                        AnalizadorDocumentos analizador, PropuestaRepositorio propuestas,
+                                        DocumentoRepositorio documentos, EventoRepositorio eventos, Avisos avisos) {
+        return new GenerarPropuestas(fragmentos, contador, analizador, propuestas, documentos, eventos, avisos);
+    }
+
+    @Bean
+    RevisarDocumento revisarDocumento(AccesoEvento acceso, DocumentoRepositorio documentos,
+                                      GenerarPropuestas generar) {
+        return new RevisarDocumento(acceso, documentos, generar);
+    }
+
+    @Bean
+    ListarPropuestas listarPropuestas(AccesoEvento acceso, PropuestaRepositorio propuestas) {
+        return new ListarPropuestas(acceso, propuestas);
+    }
+
+    @Bean
+    AceptarPropuesta aceptarPropuesta(AccesoEvento acceso, PropuestaRepositorio propuestas, TareaRepositorio tareas,
+                                      SesionRepositorio sesiones, Transaccion transaccion, Avisos avisos) {
+        return new AceptarPropuesta(acceso, propuestas, tareas, sesiones, transaccion, avisos);
+    }
+
+    @Bean
+    DescartarPropuesta descartarPropuesta(AccesoEvento acceso, PropuestaRepositorio propuestas) {
+        return new DescartarPropuesta(acceso, propuestas);
+    }
+
+    // --- Día 4.5 ---
+
+    @Bean
+    EliminarDocumento eliminarDocumento(AccesoEvento acceso, DocumentoRepositorio documentos,
+                                        PropuestaRepositorio propuestas, AlmacenTemporal almacen,
+                                        Transaccion transaccion) {
+        return new EliminarDocumento(acceso, documentos, propuestas, almacen, transaccion);
     }
 }

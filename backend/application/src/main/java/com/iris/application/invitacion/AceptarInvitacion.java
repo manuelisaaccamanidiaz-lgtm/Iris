@@ -3,11 +3,13 @@ package com.iris.application.invitacion;
 import java.time.Instant;
 import java.util.UUID;
 
+import com.iris.application.notificacion.Avisos;
 import com.iris.application.port.out.Transaccion;
 import com.iris.domain.compartido.ConflictoException;
 import com.iris.domain.evento.MiembroRepositorio;
 import com.iris.domain.invitacion.Invitacion;
 import com.iris.domain.invitacion.InvitacionRepositorio;
+import com.iris.domain.notificacion.TipoNotificacion;
 
 /** Caso de uso: acepto una invitación dirigida a mi email y entro al equipo con su rol. */
 public class AceptarInvitacion {
@@ -16,13 +18,15 @@ public class AceptarInvitacion {
     private final InvitacionRepositorio invitaciones;
     private final MiembroRepositorio miembros;
     private final Transaccion transaccion;
+    private final Avisos avisos;
 
     public AceptarInvitacion(InvitacionesDelUsuario delUsuario, InvitacionRepositorio invitaciones,
-                             MiembroRepositorio miembros, Transaccion transaccion) {
+                             MiembroRepositorio miembros, Transaccion transaccion, Avisos avisos) {
         this.delUsuario = delUsuario;
         this.invitaciones = invitaciones;
         this.miembros = miembros;
         this.transaccion = transaccion;
+        this.avisos = avisos;
     }
 
     public Invitacion ejecutar(UUID yo, UUID invitacionId) {
@@ -38,14 +42,18 @@ public class AceptarInvitacion {
         }
 
         // Dos tablas, una transacción: o pasan las dos escrituras o no pasa ninguna
-        return transaccion.ejecutar(() -> {
+        Invitacion aceptada = transaccion.ejecutar(() -> {
             if (miembros.buscar(invitacion.eventoId(), yo).isPresent()) {
                 throw new ConflictoException("Ya eres miembro de este evento");
             }
-            Invitacion aceptada = invitaciones.guardar(invitacion.aceptar(ahora)); // 409 si ya no estaba pendiente
+            Invitacion cerrada = invitaciones.guardar(invitacion.aceptar(ahora)); // 409 si ya no estaba pendiente
             miembros.agregar(invitacion.eventoId(), yo, invitacion.rol());
-            return aceptada;
-            // 4.3: aquí se avisará a los propietarios ("Carla se unió al evento")
+            return cerrada;
         });
+
+        // Después del COMMIT: los propietarios se enteran de quién entró (menos el propio invitado)
+        avisos.aPropietarios(invitacion.eventoId(), TipoNotificacion.MIEMBRO_NUEVO,
+                delUsuario.yo(yo).nombre() + " se unió al evento como " + invitacion.rol(), null, yo);
+        return aceptada;
     }
 }

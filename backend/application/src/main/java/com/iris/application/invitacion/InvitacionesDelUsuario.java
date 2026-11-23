@@ -6,6 +6,7 @@ import com.iris.domain.compartido.RecursoNoEncontradoException;
 import com.iris.domain.invitacion.Invitacion;
 import com.iris.domain.invitacion.InvitacionRepositorio;
 import com.iris.domain.usuario.Email;
+import com.iris.domain.usuario.Usuario;
 import com.iris.domain.usuario.UsuarioRepositorio;
 
 /**
@@ -23,11 +24,15 @@ public class InvitacionesDelUsuario {
         this.invitaciones = invitaciones;
     }
 
-    /** El email de quien hace la petición (el JWT solo trae su id). */
-    public Email miEmail(UUID yo) {
+    /** Quien hace la petición (el JWT solo trae su id). */
+    public Usuario yo(UUID yo) {
         return usuarios.buscarPorId(yo)
-                .orElseThrow(() -> new RecursoNoEncontradoException("Usuario no encontrado"))
-                .email();
+                .orElseThrow(() -> new RecursoNoEncontradoException("Usuario no encontrado"));
+    }
+
+    /** El email de quien hace la petición. */
+    public Email miEmail(UUID yo) {
+        return yo(yo).email();
     }
 
     /** 404 si no existe O si no es para mí: no revelamos invitaciones ajenas. */

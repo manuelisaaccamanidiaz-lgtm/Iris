@@ -9,6 +9,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -18,6 +19,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.iris.application.documento.EliminarDocumento;
 import com.iris.application.documento.ListarDocumentos;
 import com.iris.application.documento.SubirDocumento;
 import com.iris.domain.documento.Documento;
@@ -28,10 +30,13 @@ class DocumentoController {
 
     private final SubirDocumento subirDocumento;
     private final ListarDocumentos listarDocumentos;
+    private final EliminarDocumento eliminarDocumento;
 
-    DocumentoController(SubirDocumento subirDocumento, ListarDocumentos listarDocumentos) {
+    DocumentoController(SubirDocumento subirDocumento, ListarDocumentos listarDocumentos,
+                        EliminarDocumento eliminarDocumento) {
         this.subirDocumento = subirDocumento;
         this.listarDocumentos = listarDocumentos;
+        this.eliminarDocumento = eliminarDocumento;
     }
 
     /**
@@ -52,6 +57,13 @@ class DocumentoController {
     List<RespuestaDocumento> listar(@AuthenticationPrincipal Jwt jwt, @PathVariable UUID eventoId) {
         UUID usuarioId = UUID.fromString(jwt.getSubject());
         return listarDocumentos.ejecutar(usuarioId, eventoId).stream().map(RespuestaDocumento::de).toList();
+    }
+
+    /** Borrado físico: el documento, sus fragmentos y sus vectores (Día 4.5). */
+    @DeleteMapping("/{documentoId}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    void eliminar(@AuthenticationPrincipal Jwt jwt, @PathVariable UUID eventoId, @PathVariable UUID documentoId) {
+        eliminarDocumento.ejecutar(UUID.fromString(jwt.getSubject()), eventoId, documentoId);
     }
 
     /** Sin hash ni ruta temporal: son detalles internos que el cliente no necesita. */

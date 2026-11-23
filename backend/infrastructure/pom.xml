@@ -89,6 +89,12 @@
             <version>3.0.8</version>
         </dependency>
 
+        <!-- Correo (Día 4.3): JavaMailSender por SMTP. En desarrollo apunta a Mailpit; luego, a Gmail -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-mail</artifactId>
+        </dependency>
+
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-webmvc-test</artifactId>

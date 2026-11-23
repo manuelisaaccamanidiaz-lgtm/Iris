@@ -1,5 +1,6 @@
 package com.iris.domain.invitacion;
 
+import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -20,4 +21,7 @@ public interface InvitacionRepositorio {
 
     /** Las PENDIENTES dirigidas a ese email, con los datos del evento, para la bandeja. */
     List<InvitacionRecibida> listarPendientesPara(String email);
+
+    /** Despertador (4.3): PENDIENTE con expira_en <= ahora pasan a VENCIDA. Devuelve cuántas. */
+    int vencerExpiradas(Instant ahora);
 }

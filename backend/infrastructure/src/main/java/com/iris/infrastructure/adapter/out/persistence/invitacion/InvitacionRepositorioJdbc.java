@@ -108,6 +108,15 @@ class InvitacionRepositorioJdbc implements InvitacionRepositorio {
                         rs.getString("invitado_por_nombre")));
     }
 
+    @Override
+    public int vencerExpiradas(Instant ahora) {
+        // cerrada_en = expira_en: la fecha en que venció DE VERDAD, igual que Invitacion.vencer()
+        return jdbc.update("""
+                UPDATE invitaciones SET estado = 'VENCIDA', cerrada_en = expira_en
+                WHERE estado = 'PENDIENTE' AND expira_en <= :ahora
+                """, new MapSqlParameterSource("ahora", Timestamp.from(ahora)));
+    }
+
     private static Invitacion aDominio(ResultSet rs) throws SQLException {
         return new Invitacion(
                 rs.getObject("id", UUID.class),
