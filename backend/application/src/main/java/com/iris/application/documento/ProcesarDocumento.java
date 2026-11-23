@@ -5,7 +5,9 @@ import java.util.List;
 import java.util.UUID;
 
 import com.iris.application.documento.Fragmentador.Pedazo;
+import com.iris.application.notificacion.Avisos;
 import com.iris.application.port.out.AlmacenTemporal;
+import com.iris.domain.notificacion.TipoNotificacion;
 import com.iris.application.port.out.ExtractorTexto;
 import com.iris.application.port.out.ExtractorTexto.PaginaTexto;
 import com.iris.application.port.out.GeneradorEmbeddings;
@@ -33,16 +35,27 @@ public class ProcesarDocumento {
     private final ExtractorTexto extractor;
     private final Fragmentador fragmentador;
     private final GeneradorEmbeddings embeddings;
+    private final Avisos avisos;
 
     public ProcesarDocumento(DocumentoRepositorio documentos, FragmentoRepositorio fragmentos,
                              AlmacenTemporal almacen, ExtractorTexto extractor,
-                             Fragmentador fragmentador, GeneradorEmbeddings embeddings) {
+                             Fragmentador fragmentador, GeneradorEmbeddings embeddings, Avisos avisos) {
         this.documentos = documentos;
         this.fragmentos = fragmentos;
         this.almacen = almacen;
         this.extractor = extractor;
         this.fragmentador = fragmentador;
         this.embeddings = embeddings;
+        this.avisos = avisos;
+    }
+
+    /** "Documento indexado" a quien lo subió y a los propietarios (sin repetirle a quien lo subió). */
+    private void avisarIndexado(Documento doc) {
+        String mensaje = "El documento «" + doc.nombreArchivo() + "» ya está listo: puedes preguntarle a Iris";
+        if (doc.subidoPor() != null) {
+            avisos.aMiembro(doc.eventoId(), doc.subidoPor(), TipoNotificacion.DOCUMENTO_INDEXADO, mensaje, doc.id());
+        }
+        avisos.aPropietarios(doc.eventoId(), TipoNotificacion.DOCUMENTO_INDEXADO, mensaje, doc.id(), doc.subidoPor());
     }
 
     public void ejecutar(UUID documentoId) {
@@ -84,6 +97,7 @@ public class ProcesarDocumento {
             }
             almacen.borrar(ruta);
             documentos.guardar(doc.marcarIndexado(paginas.size(), embeddings.modelo(), embeddings.dimensiones()));
+            avisarIndexado(doc);
 
         } catch (Exception e) {
             documentos.guardar(doc.marcarError(mensajeLegible(e)));

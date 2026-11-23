@@ -5,6 +5,7 @@ import java.util.Optional;
 import java.util.UUID;
 
 import com.iris.application.evento.AccesoEvento;
+import com.iris.application.notificacion.Avisos;
 import com.iris.application.port.out.Transaccion;
 import com.iris.domain.compartido.ConflictoException;
 import com.iris.domain.compartido.ReglaDeNegocioException;
@@ -13,7 +14,10 @@ import com.iris.domain.evento.MiembroRepositorio;
 import com.iris.domain.evento.RolEnEvento;
 import com.iris.domain.invitacion.Invitacion;
 import com.iris.domain.invitacion.InvitacionRepositorio;
+import com.iris.domain.notificacion.TipoNotificacion;
 import com.iris.domain.usuario.Email;
+import com.iris.domain.usuario.Usuario;
+import com.iris.domain.usuario.UsuarioRepositorio;
 
 /** Caso de uso: un propietario invita a alguien (tenga cuenta o no) por email. */
 public class InvitarAlEvento {
@@ -22,13 +26,17 @@ public class InvitarAlEvento {
     private final MiembroRepositorio miembros;
     private final InvitacionRepositorio invitaciones;
     private final Transaccion transaccion;
+    private final UsuarioRepositorio usuarios;
+    private final Avisos avisos;
 
-    public InvitarAlEvento(AccesoEvento acceso, MiembroRepositorio miembros,
-                           InvitacionRepositorio invitaciones, Transaccion transaccion) {
+    public InvitarAlEvento(AccesoEvento acceso, MiembroRepositorio miembros, InvitacionRepositorio invitaciones,
+                           Transaccion transaccion, UsuarioRepositorio usuarios, Avisos avisos) {
         this.acceso = acceso;
         this.miembros = miembros;
         this.invitaciones = invitaciones;
         this.transaccion = transaccion;
+        this.usuarios = usuarios;
+        this.avisos = avisos;
     }
 
     public Invitacion ejecutar(UUID yo, UUID eventoId, String email, RolEnEvento rol) {
@@ -46,7 +54,7 @@ public class InvitarAlEvento {
         }
 
         // 3) Todo o nada: vencer la pendiente vieja (si la hay) + crear la nueva
-        return transaccion.ejecutar(() -> {
+        Invitacion creada = transaccion.ejecutar(() -> {
             Instant ahora = Instant.now();
             Optional<Invitacion> pendiente = invitaciones.buscarPendiente(eventoId, destino.normalizado());
             if (pendiente.isPresent()) {
@@ -58,7 +66,14 @@ public class InvitarAlEvento {
                 invitaciones.guardar(pendiente.get().vencer(ahora));
             }
             return invitaciones.guardar(Invitacion.crear(eventoId, destino, rol, yo));
-            // 4.3: aquí se avisará al invitado (notificación + correo)
         });
+
+        // 4) Avisar DESPUÉS del COMMIT: nunca un correo de una invitación que terminó en ROLLBACK.
+        //    Si ya tiene cuenta -> campanita + correo; si no -> solo correo (la verá al registrarse)
+        UUID idInvitado = usuarios.buscarPorEmail(destino).map(Usuario::id).orElse(null);
+        avisos.aPersona(idInvitado, destino.valor(), eventoId, TipoNotificacion.INVITACION_RECIBIDA,
+                "Te invitaron a «" + evento.evento().nombre() + "» como " + rol
+                        + ". Entra a Iris para aceptar o rechazar (vence en 7 días)", creada.id());
+        return creada;
     }
 }
