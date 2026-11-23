@@ -11,25 +11,25 @@
   --brand: #0a7d70;           /* botón principal, barra superior (5:1 con blanco) */
   --brand-hover: #086a5f;
   --on-brand: #ffffff;
-  --brand-soft: #e3f6f3;      /* burbujas de Iris, chips informativos */
+  --brand-soft: #d2ede8;      /* burbujas de Iris, chips informativos */
   --brand-ink: #0b5f55;       /* texto sobre brand-soft */
   --coral: #ff7a59;           /* acento alegre: acciones de Iris, contador de la campanita */
   --coral-hover: #f2643f;
   --on-coral: #1e293b;        /* el coral lleva texto azul marino, NUNCA blanco */
-  --coral-soft: #ffe7df;      /* alertas amables: "vence mañana" */
-  --coral-ink: #a63a1a;
+  --coral-soft: #ffdcd0;      /* alertas amables: "vence mañana" */
+  --coral-ink: #9e3517;
 
   /* Texto y superficies */
   --ink: #1e293b;
-  --ink-muted: #5b6b7a;
-  --surface: #f5faf9;
-  --surface-card: #ffffff;
-  --border: #d6e9e5;
+  --ink-muted: #586876;
+  --surface: #e6efec;        /* v2: menos deslumbrante, verde grisáceo */
+  --surface-card: #fcfefd;
+  --border: #c6dad5;
 
   /* Estados */
-  --success: #1c7c47;
-  --warning: #9a6212;
-  --danger: #c43c3c;
+  --success: #1a7343;
+  --warning: #8a580f;
+  --danger: #b53535;
 
   /* Tipografía */
   --font-display: "Plus Jakarta Sans", system-ui, sans-serif;
@@ -47,6 +47,19 @@
   --radius-lg: 16px;
   --radius-pill: 999px;
   --shadow-card: 0 1px 2px rgba(30, 41, 59, 0.06), 0 4px 12px rgba(30, 41, 59, 0.06);
+
+  /* v2: la barra superior y el panel de bienvenida en verde petróleo profundo (corporativo) */
+  --barra: #0f3b39;
+  --on-barra: #ffffff;
+  --on-barra-suave: #b9d9d3;
+
+  /* v2: un color FUERTE por tipo de sesión, siempre con texto encima que alcanza 4.5:1 */
+  --tipo-conferencia: #0a7d70;  --on-tipo-conferencia: #ffffff;
+  --tipo-taller: #ff7a59;       --on-tipo-taller: #1e293b;
+  --tipo-panel: #6650c8;        --on-tipo-panel: #ffffff;
+  --tipo-reunion: #2e6bb0;      --on-tipo-reunion: #ffffff;
+  --tipo-logistica: #8f5a10;    --on-tipo-logistica: #ffffff;
+  --tipo-otro: #586876;         --on-tipo-otro: #ffffff;
 }
 
 /* Modo oscuro: SOLO cambian los valores, nunca los nombres */
@@ -69,12 +82,21 @@
   --warning: #f6c26b;
   --danger: #f28b8b;
   --shadow-card: none;
+  --barra: #0b1413;
+  --on-barra: #e8eef2;
+  --on-barra-suave: #a3b1bd;
+  --tipo-conferencia: #2ec4b0;  --on-tipo-conferencia: #04201c;
+  --tipo-taller: #ff8e70;       --on-tipo-taller: #1e293b;
+  --tipo-panel: #b3a6f2;        --on-tipo-panel: #14102e;
+  --tipo-reunion: #8dbdf0;      --on-tipo-reunion: #0a1a2e;
+  --tipo-logistica: #f6c26b;    --on-tipo-logistica: #2a1a05;
+  --tipo-otro: #a3b1bd;         --on-tipo-otro: #0f1716;
 }
 
-/* Un color por TIPO de actividad (agenda). Siempre acompañado de su nombre, nunca solo el color */
-.tipo-CONFERENCIA { --tipo-fondo: var(--brand-soft); --tipo-texto: var(--brand-ink); }
-.tipo-TALLER { --tipo-fondo: var(--coral-soft); --tipo-texto: var(--coral-ink); }
-.tipo-PANEL { --tipo-fondo: transparent; --tipo-texto: var(--success); }
-.tipo-REUNION { --tipo-fondo: transparent; --tipo-texto: var(--warning); }
-.tipo-LOGISTICA { --tipo-fondo: var(--surface); --tipo-texto: var(--ink-muted); }
-.tipo-OTRO { --tipo-fondo: var(--surface); --tipo-texto: var(--ink); }
+/* Cada sesión toma el color de su tipo: --tipo y --on-tipo. Siempre con su nombre escrito */
+.tipo-CONFERENCIA { --tipo: var(--tipo-conferencia); --on-tipo: var(--on-tipo-conferencia); }
+.tipo-TALLER { --tipo: var(--tipo-taller); --on-tipo: var(--on-tipo-taller); }
+.tipo-PANEL { --tipo: var(--tipo-panel); --on-tipo: var(--on-tipo-panel); }
+.tipo-REUNION { --tipo: var(--tipo-reunion); --on-tipo: var(--on-tipo-reunion); }
+.tipo-LOGISTICA { --tipo: var(--tipo-logistica); --on-tipo: var(--on-tipo-logistica); }
+.tipo-OTRO { --tipo: var(--tipo-otro); --on-tipo: var(--on-tipo-otro); }

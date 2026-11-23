@@ -19,3 +19,8 @@
 .campanita-aviso:hover { background: var(--surface); }
 /* No leída: fondo de Iris + un punto. Nunca solo el color: el lector de pantalla lee el texto */
 .campanita-aviso.no-leida { background: var(--brand-soft); color: var(--brand-ink); }
+/* El panel vive DENTRO de la barra oscura: le devolvemos los colores normales de tarjeta */
+.campanita-panel { color: var(--ink); }
+.campanita-panel .texto-suave { color: var(--ink-muted); }
+.barra .campanita-panel .boton { background: var(--surface-card); color: var(--ink); border-color: var(--border); }
+.barra .campanita-panel .boton:hover { border-color: var(--brand); }
