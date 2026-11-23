@@ -15,6 +15,7 @@ public enum TipoNotificacion {
     TAREA_NUEVA(false),
     TAREA_ASIGNADA(false),
     DOCUMENTO_INDEXADO(false),
+    PROPUESTAS_NUEVAS(false),
     TAREA_VENCE_MANANA(true),
     TAREA_VENCE_HOY(true),
     TAREA_VENCIDA(true);

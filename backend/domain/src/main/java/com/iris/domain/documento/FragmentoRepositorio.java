@@ -13,4 +13,7 @@ public interface FragmentoRepositorio {
     void reemplazarDelDocumento(UUID documentoId, List<Fragmento> fragmentos);
 
     int contarPorDocumento(UUID documentoId);
+
+    /** El texto del documento en orden (sin los vectores): lo que Iris lee para hacer propuestas (4.4). */
+    List<TextoFragmento> listarTextosDelDocumento(UUID documentoId);
 }
