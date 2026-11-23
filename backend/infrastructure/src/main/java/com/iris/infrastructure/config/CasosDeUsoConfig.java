@@ -34,6 +34,11 @@ import com.iris.application.invitacion.InvitarAlEvento;
 import com.iris.application.invitacion.ListarInvitacionesDelEvento;
 import com.iris.application.invitacion.MisInvitaciones;
 import com.iris.application.invitacion.RechazarInvitacion;
+import com.iris.application.notificacion.Avisos;
+import com.iris.application.notificacion.EnviarRecordatorios;
+import com.iris.application.notificacion.MisNotificaciones;
+import com.iris.application.notificacion.VencerInvitaciones;
+import com.iris.application.port.out.Notificador;
 import com.iris.application.port.out.Transaccion;
 import com.iris.application.evento.CrearEvento;
 import com.iris.application.evento.ListarEventos;
@@ -54,6 +59,8 @@ import com.iris.domain.documento.FragmentoRepositorio;
 import com.iris.domain.evento.EventoRepositorio;
 import com.iris.domain.evento.MiembroRepositorio;
 import com.iris.domain.invitacion.InvitacionRepositorio;
+import com.iris.domain.notificacion.NotificacionRepositorio;
+import com.iris.domain.notificacion.RecordatorioRepositorio;
 import com.iris.domain.usuario.UsuarioRepositorio;
 
 /**
@@ -122,8 +129,8 @@ public class CasosDeUsoConfig {
     @Bean
     ProcesarDocumento procesarDocumento(DocumentoRepositorio documentos, FragmentoRepositorio fragmentos,
                                         AlmacenTemporal almacen, ExtractorTexto extractor,
-                                        Fragmentador fragmentador, GeneradorEmbeddings embeddings) {
-        return new ProcesarDocumento(documentos, fragmentos, almacen, extractor, fragmentador, embeddings);
+                                        Fragmentador fragmentador, GeneradorEmbeddings embeddings, Avisos avisos) {
+        return new ProcesarDocumento(documentos, fragmentos, almacen, extractor, fragmentador, embeddings, avisos);
     }
 
     @Bean
@@ -139,8 +146,8 @@ public class CasosDeUsoConfig {
     }
 
     @Bean
-    CrearSesion crearSesion(AccesoEvento acceso, SesionRepositorio sesiones) {
-        return new CrearSesion(acceso, sesiones);
+    CrearSesion crearSesion(AccesoEvento acceso, SesionRepositorio sesiones, Avisos avisos) {
+        return new CrearSesion(acceso, sesiones, avisos);
     }
 
     @Bean
@@ -159,8 +166,8 @@ public class CasosDeUsoConfig {
     }
 
     @Bean
-    CrearTarea crearTarea(AccesoEvento acceso, TareaRepositorio tareas) {
-        return new CrearTarea(acceso, tareas);
+    CrearTarea crearTarea(AccesoEvento acceso, TareaRepositorio tareas, Avisos avisos) {
+        return new CrearTarea(acceso, tareas, avisos);
     }
 
     @Bean
@@ -169,8 +176,8 @@ public class CasosDeUsoConfig {
     }
 
     @Bean
-    EditarTarea editarTarea(AccesoEvento acceso, TareaRepositorio tareas) {
-        return new EditarTarea(acceso, tareas);
+    EditarTarea editarTarea(AccesoEvento acceso, TareaRepositorio tareas, Avisos avisos) {
+        return new EditarTarea(acceso, tareas, avisos);
     }
 
     @Bean
@@ -192,8 +199,9 @@ public class CasosDeUsoConfig {
 
     @Bean
     InvitarAlEvento invitarAlEvento(AccesoEvento acceso, MiembroRepositorio miembros,
-                                    InvitacionRepositorio invitaciones, Transaccion transaccion) {
-        return new InvitarAlEvento(acceso, miembros, invitaciones, transaccion);
+                                    InvitacionRepositorio invitaciones, Transaccion transaccion,
+                                    UsuarioRepositorio usuarios, Avisos avisos) {
+        return new InvitarAlEvento(acceso, miembros, invitaciones, transaccion, usuarios, avisos);
     }
 
     @Bean
@@ -213,8 +221,8 @@ public class CasosDeUsoConfig {
 
     @Bean
     AceptarInvitacion aceptarInvitacion(InvitacionesDelUsuario delUsuario, InvitacionRepositorio invitaciones,
-                                        MiembroRepositorio miembros, Transaccion transaccion) {
-        return new AceptarInvitacion(delUsuario, invitaciones, miembros, transaccion);
+                                        MiembroRepositorio miembros, Transaccion transaccion, Avisos avisos) {
+        return new AceptarInvitacion(delUsuario, invitaciones, miembros, transaccion, avisos);
     }
 
     @Bean
@@ -240,5 +248,28 @@ public class CasosDeUsoConfig {
     @Bean
     SalirDelEvento salirDelEvento(AccesoEvento acceso, MiembroRepositorio miembros) {
         return new SalirDelEvento(acceso, miembros);
+    }
+
+    // --- Día 4.3: notificaciones y recordatorios ---
+
+    @Bean
+    Avisos avisos(MiembroRepositorio miembros, Notificador notificador) {
+        return new Avisos(miembros, notificador);
+    }
+
+    @Bean
+    EnviarRecordatorios enviarRecordatorios(TareaRepositorio tareas, RecordatorioRepositorio recordatorios,
+                                            Avisos avisos) {
+        return new EnviarRecordatorios(tareas, recordatorios, avisos);
+    }
+
+    @Bean
+    VencerInvitaciones vencerInvitaciones(InvitacionRepositorio invitaciones) {
+        return new VencerInvitaciones(invitaciones);
+    }
+
+    @Bean
+    MisNotificaciones misNotificaciones(NotificacionRepositorio notificaciones) {
+        return new MisNotificaciones(notificaciones);
     }
 }
