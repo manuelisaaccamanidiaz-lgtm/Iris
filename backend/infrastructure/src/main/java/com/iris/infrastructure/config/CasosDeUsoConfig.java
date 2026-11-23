@@ -40,9 +40,15 @@ import com.iris.application.notificacion.MisNotificaciones;
 import com.iris.application.notificacion.VencerInvitaciones;
 import com.iris.application.port.out.Notificador;
 import com.iris.application.port.out.Transaccion;
+import com.iris.application.propuesta.AceptarPropuesta;
+import com.iris.application.propuesta.DescartarPropuesta;
+import com.iris.application.propuesta.GenerarPropuestas;
+import com.iris.application.propuesta.ListarPropuestas;
+import com.iris.application.propuesta.RevisarDocumento;
 import com.iris.application.evento.CrearEvento;
 import com.iris.application.evento.ListarEventos;
 import com.iris.application.port.out.AlmacenTemporal;
+import com.iris.application.port.out.AnalizadorDocumentos;
 import com.iris.application.port.out.BuscadorFragmentos;
 import com.iris.application.port.out.CodificadorPassword;
 import com.iris.application.port.out.ColaIndexacion;
@@ -61,6 +67,7 @@ import com.iris.domain.evento.MiembroRepositorio;
 import com.iris.domain.invitacion.InvitacionRepositorio;
 import com.iris.domain.notificacion.NotificacionRepositorio;
 import com.iris.domain.notificacion.RecordatorioRepositorio;
+import com.iris.domain.propuesta.PropuestaRepositorio;
 import com.iris.domain.usuario.UsuarioRepositorio;
 
 /**
@@ -271,5 +278,36 @@ public class CasosDeUsoConfig {
     @Bean
     MisNotificaciones misNotificaciones(NotificacionRepositorio notificaciones) {
         return new MisNotificaciones(notificaciones);
+    }
+
+    // --- Día 4.4: propuestas de Iris ---
+
+    @Bean
+    GenerarPropuestas generarPropuestas(FragmentoRepositorio fragmentos, ContadorTokens contador,
+                                        AnalizadorDocumentos analizador, PropuestaRepositorio propuestas,
+                                        DocumentoRepositorio documentos, EventoRepositorio eventos, Avisos avisos) {
+        return new GenerarPropuestas(fragmentos, contador, analizador, propuestas, documentos, eventos, avisos);
+    }
+
+    @Bean
+    RevisarDocumento revisarDocumento(AccesoEvento acceso, DocumentoRepositorio documentos,
+                                      GenerarPropuestas generar) {
+        return new RevisarDocumento(acceso, documentos, generar);
+    }
+
+    @Bean
+    ListarPropuestas listarPropuestas(AccesoEvento acceso, PropuestaRepositorio propuestas) {
+        return new ListarPropuestas(acceso, propuestas);
+    }
+
+    @Bean
+    AceptarPropuesta aceptarPropuesta(AccesoEvento acceso, PropuestaRepositorio propuestas, TareaRepositorio tareas,
+                                      SesionRepositorio sesiones, Transaccion transaccion, Avisos avisos) {
+        return new AceptarPropuesta(acceso, propuestas, tareas, sesiones, transaccion, avisos);
+    }
+
+    @Bean
+    DescartarPropuesta descartarPropuesta(AccesoEvento acceso, PropuestaRepositorio propuestas) {
+        return new DescartarPropuesta(acceso, propuestas);
     }
 }

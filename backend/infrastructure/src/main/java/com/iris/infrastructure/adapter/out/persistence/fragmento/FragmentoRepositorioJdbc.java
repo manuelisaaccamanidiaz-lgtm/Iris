@@ -9,6 +9,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.iris.domain.documento.Fragmento;
 import com.iris.domain.documento.FragmentoRepositorio;
+import com.iris.domain.documento.TextoFragmento;
 import com.iris.infrastructure.adapter.out.persistence.VectorPg;
 
 /**
@@ -55,5 +56,16 @@ class FragmentoRepositorioJdbc implements FragmentoRepositorio {
         Integer total = jdbc.queryForObject(
                 "SELECT count(*) FROM fragmentos WHERE documento_id = ?", Integer.class, documentoId);
         return total == null ? 0 : total;
+    }
+
+    @Override
+    public List<TextoFragmento> listarTextosDelDocumento(UUID documentoId) {
+        // Sin la columna embedding: 1536 números por fila que aquí no sirven para nada
+        return jdbc.query("""
+                SELECT orden, pagina_inicio, pagina_fin, seccion, contenido, tokens
+                FROM fragmentos WHERE documento_id = ? ORDER BY orden
+                """, (rs, n) -> new TextoFragmento(rs.getInt("orden"), rs.getInt("pagina_inicio"),
+                rs.getInt("pagina_fin"), rs.getString("seccion"), rs.getString("contenido"), rs.getInt("tokens")),
+                documentoId);
     }
 }

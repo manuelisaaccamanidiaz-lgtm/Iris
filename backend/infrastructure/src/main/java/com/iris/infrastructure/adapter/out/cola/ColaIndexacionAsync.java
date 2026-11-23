@@ -8,6 +8,7 @@ import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 
 import com.iris.application.documento.ProcesarDocumento;
+import com.iris.application.propuesta.GenerarPropuestas;
 import com.iris.application.port.out.ColaIndexacion;
 
 /**
@@ -21,9 +22,11 @@ class ColaIndexacionAsync implements ColaIndexacion {
     private static final Logger log = LoggerFactory.getLogger(ColaIndexacionAsync.class);
 
     private final ProcesarDocumento procesarDocumento;
+    private final GenerarPropuestas generarPropuestas;
 
-    ColaIndexacionAsync(ProcesarDocumento procesarDocumento) {
+    ColaIndexacionAsync(ProcesarDocumento procesarDocumento, GenerarPropuestas generarPropuestas) {
         this.procesarDocumento = procesarDocumento;
+        this.generarPropuestas = generarPropuestas;
     }
 
     @Override
@@ -36,6 +39,14 @@ class ColaIndexacionAsync implements ColaIndexacion {
         } catch (Exception e) {
             // Última red: algo falló incluso guardando el ERROR (p. ej. la BD cayó). Solo queda el log
             log.error("Fallo inesperado indexando {}", documentoId, e);
+            return;
+        }
+        // Disparador AUTOMÁTICO del 4.4, en el mismo hilo del indexador y DESPUÉS de indexar.
+        // Va aparte: si Groq falla, el documento sigue INDEXADO y se puede "revisar" a mano después
+        try {
+            generarPropuestas.paraDocumentoIndexado(documentoId);
+        } catch (Exception e) {
+            log.warn("No se pudieron generar propuestas para {}: {}", documentoId, e.getMessage());
         }
     }
 }
