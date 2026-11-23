@@ -5,9 +5,11 @@
 import { Navigate, Route, Routes } from "react-router";
 import RutaPrivada from "./auth/RutaPrivada.jsx";
 import Layout from "./componentes/Layout.jsx";
+import Agenda from "./paginas/evento/Agenda.jsx";
 import Chat from "./paginas/evento/Chat.jsx";
 import Documentos from "./paginas/evento/Documentos.jsx";
 import Equipo from "./paginas/evento/Equipo.jsx";
+import Tareas from "./paginas/evento/Tareas.jsx";
 import EventoDetalle from "./paginas/EventoDetalle.jsx";
 import Eventos from "./paginas/Eventos.jsx";
 import Invitaciones from "./paginas/Invitaciones.jsx";
@@ -27,6 +29,8 @@ export default function App() {
           <Route index element={<Navigate to="chat" replace />} />
           <Route path="chat" element={<Chat />} />
           <Route path="documentos" element={<Documentos />} />
+          <Route path="agenda" element={<Agenda />} />
+          <Route path="tareas" element={<Tareas />} />
           <Route path="equipo" element={<Equipo />} />
         </Route>
       </Route>

@@ -26,3 +26,29 @@ export function haceCuanto(instante) {
   if (minutos < 1440) return `hace ${Math.round(minutos / 60)} h`;
   return `hace ${Math.round(minutos / 1440)} d`;
 }
+
+/** Hoy en la zona del navegador como "AAAA-MM-DD" (toISOString() daría el día en UTC: mañana desde las 7 p. m.) */
+export function hoyIso() {
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+}
+
+/** Suma días a una fecha "AAAA-MM-DD". */
+export function sumarDias(iso, dias) {
+  const [a, m, d] = iso.split("-").map(Number);
+  const f = new Date(a, m - 1, d + dias);
+  return `${f.getFullYear()}-${String(f.getMonth() + 1).padStart(2, "0")}-${String(f.getDate()).padStart(2, "0")}`;
+}
+
+/** "09:00:00" -> "9:00 a. m." */
+export function hora(texto) {
+  if (!texto) return "";
+  const [h, m] = texto.split(":").map(Number);
+  return new Date(2000, 0, 1, h, m).toLocaleTimeString("es-CO", { hour: "numeric", minute: "2-digit" });
+}
+
+/** "2026-12-09" -> "martes 9 de diciembre" (cabeceras de la agenda) */
+export function diaLargo(iso) {
+  const [a, m, d] = iso.split("-").map(Number);
+  return new Date(a, m - 1, d).toLocaleDateString("es-CO", { weekday: "long", day: "numeric", month: "long" });
+}

@@ -70,3 +70,11 @@
   --danger: #f28b8b;
   --shadow-card: none;
 }
+
+/* Un color por TIPO de actividad (agenda). Siempre acompañado de su nombre, nunca solo el color */
+.tipo-CONFERENCIA { --tipo-fondo: var(--brand-soft); --tipo-texto: var(--brand-ink); }
+.tipo-TALLER { --tipo-fondo: var(--coral-soft); --tipo-texto: var(--coral-ink); }
+.tipo-PANEL { --tipo-fondo: transparent; --tipo-texto: var(--success); }
+.tipo-REUNION { --tipo-fondo: transparent; --tipo-texto: var(--warning); }
+.tipo-LOGISTICA { --tipo-fondo: var(--surface); --tipo-texto: var(--ink-muted); }
+.tipo-OTRO { --tipo-fondo: var(--surface); --tipo-texto: var(--ink); }
