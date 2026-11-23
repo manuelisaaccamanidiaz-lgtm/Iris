@@ -1,0 +1,72 @@
+/*
+ * Sistema de diseño "Agenda fresca" (aguamarina + coral) como VARIABLES CSS.
+ * Los valores salen del artifact "Iris" (tokens.json). Si cambias un color, cámbialo en los dos lados.
+ *
+ * Modo oscuro: los componentes NUNCA usan colores fijos, solo var(--...). Así, cambiar
+ * data-theme="dark" en <html> re-pinta toda la app sin tocar un solo componente.
+ */
+:root {
+  /* Identidad y acciones */
+  --aqua: #2ec4b0;            /* solo decoración: no alcanza contraste con texto blanco */
+  --brand: #0a7d70;           /* botón principal, barra superior (5:1 con blanco) */
+  --brand-hover: #086a5f;
+  --on-brand: #ffffff;
+  --brand-soft: #e3f6f3;      /* burbujas de Iris, chips informativos */
+  --brand-ink: #0b5f55;       /* texto sobre brand-soft */
+  --coral: #ff7a59;           /* acento alegre: acciones de Iris, contador de la campanita */
+  --coral-hover: #f2643f;
+  --on-coral: #1e293b;        /* el coral lleva texto azul marino, NUNCA blanco */
+  --coral-soft: #ffe7df;      /* alertas amables: "vence mañana" */
+  --coral-ink: #a63a1a;
+
+  /* Texto y superficies */
+  --ink: #1e293b;
+  --ink-muted: #5b6b7a;
+  --surface: #f5faf9;
+  --surface-card: #ffffff;
+  --border: #d6e9e5;
+
+  /* Estados */
+  --success: #1c7c47;
+  --warning: #9a6212;
+  --danger: #c43c3c;
+
+  /* Tipografía */
+  --font-display: "Plus Jakarta Sans", system-ui, sans-serif;
+  --font-sans: "Inter", system-ui, sans-serif;
+
+  /* Escala de 4 px, esquinas y sombra */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 16px;
+  --radius-pill: 999px;
+  --shadow-card: 0 1px 2px rgba(30, 41, 59, 0.06), 0 4px 12px rgba(30, 41, 59, 0.06);
+}
+
+/* Modo oscuro: SOLO cambian los valores, nunca los nombres */
+[data-theme="dark"] {
+  --brand: #2ec4b0;
+  --brand-hover: #5dd8c6;
+  --on-brand: #04201c;
+  --brand-soft: #123a36;
+  --brand-ink: #9fe7db;
+  --coral: #ff8e70;
+  --coral-hover: #ffa68d;
+  --coral-soft: #4a2419;
+  --coral-ink: #ffb39e;
+  --ink: #e8eef2;
+  --ink-muted: #a3b1bd;
+  --surface: #0f1716;
+  --surface-card: #17211f;
+  --border: #26403c;
+  --success: #4ade80;
+  --warning: #f6c26b;
+  --danger: #f28b8b;
+  --shadow-card: none;
+}

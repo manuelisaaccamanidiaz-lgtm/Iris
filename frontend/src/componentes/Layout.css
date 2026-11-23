@@ -1,0 +1,16 @@
+.marco { min-height: 100%; display: flex; flex-direction: column; }
+.barra {
+  display: flex; align-items: center; gap: var(--space-6);
+  padding: var(--space-3) var(--space-8);
+  background: var(--surface-card);
+  border-bottom: 1px solid var(--border);
+}
+.barra-nav { display: flex; gap: var(--space-4); }
+.barra-nav a {
+  color: var(--ink-muted); text-decoration: none; font-weight: 600;
+  padding: var(--space-1) var(--space-2); border-radius: var(--radius-sm);
+}
+/* NavLink agrega la clase "active" sola cuando la URL coincide */
+.barra-nav a.active { color: var(--brand-ink); background: var(--brand-soft); }
+.barra-derecha { margin-left: auto; display: flex; align-items: center; gap: var(--space-3); }
+.contenido { flex: 1; width: 100%; max-width: 1100px; margin: 0 auto; padding: var(--space-8); }
