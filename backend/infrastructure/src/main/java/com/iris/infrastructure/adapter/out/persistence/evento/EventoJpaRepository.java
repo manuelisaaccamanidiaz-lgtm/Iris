@@ -17,11 +17,12 @@ interface EventoJpaRepository extends JpaRepository<EventoEntity, UUID> {
     boolean existeDelCreador(@Param("creadoPor") UUID creadoPor, @Param("nombre") String nombre,
                              @Param("fechaInicio") java.time.LocalDate fechaInicio);
 
-    // JOIN con miembros: solo los eventos donde :usuarioId es miembro, junto con su rol
+    // JOIN con miembros: solo los eventos donde :usuarioId es miembro, junto con su rol.
+    // V10: los que la persona ARCHIVÓ no aparecen en su lista (pero sigue pudiendo abrirlos por id)
     @Query("""
             select new com.iris.infrastructure.adapter.out.persistence.evento.EventoConRolFila(e, m.rol)
             from EventoEntity e, MiembroEventoEntity m
-            where m.id.eventoId = e.id and m.id.usuarioId = :usuarioId
+            where m.id.eventoId = e.id and m.id.usuarioId = :usuarioId and m.archivadoEn is null
             order by e.fechaInicio asc
             """)
     List<EventoConRolFila> listarDeMiembro(@Param("usuarioId") UUID usuarioId);

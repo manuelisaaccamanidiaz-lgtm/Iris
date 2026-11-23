@@ -23,6 +23,18 @@ import com.iris.application.documento.ListarDocumentos;
 import com.iris.application.documento.ProcesarDocumento;
 import com.iris.application.documento.SubirDocumento;
 import com.iris.application.evento.AccesoEvento;
+import com.iris.application.evento.CambiarRolMiembro;
+import com.iris.application.evento.ListarMiembros;
+import com.iris.application.evento.QuitarMiembro;
+import com.iris.application.evento.SalirDelEvento;
+import com.iris.application.invitacion.AceptarInvitacion;
+import com.iris.application.invitacion.CancelarInvitacion;
+import com.iris.application.invitacion.InvitacionesDelUsuario;
+import com.iris.application.invitacion.InvitarAlEvento;
+import com.iris.application.invitacion.ListarInvitacionesDelEvento;
+import com.iris.application.invitacion.MisInvitaciones;
+import com.iris.application.invitacion.RechazarInvitacion;
+import com.iris.application.port.out.Transaccion;
 import com.iris.application.evento.CrearEvento;
 import com.iris.application.evento.ListarEventos;
 import com.iris.application.port.out.AlmacenTemporal;
@@ -40,6 +52,8 @@ import com.iris.domain.consulta.ConsultaRepositorio;
 import com.iris.domain.documento.DocumentoRepositorio;
 import com.iris.domain.documento.FragmentoRepositorio;
 import com.iris.domain.evento.EventoRepositorio;
+import com.iris.domain.evento.MiembroRepositorio;
+import com.iris.domain.invitacion.InvitacionRepositorio;
 import com.iris.domain.usuario.UsuarioRepositorio;
 
 /**
@@ -167,5 +181,64 @@ public class CasosDeUsoConfig {
     @Bean
     EliminarTarea eliminarTarea(AccesoEvento acceso, TareaRepositorio tareas) {
         return new EliminarTarea(acceso, tareas);
+    }
+
+    // --- Día 4.2: invitaciones y equipo ---
+
+    @Bean
+    InvitacionesDelUsuario invitacionesDelUsuario(UsuarioRepositorio usuarios, InvitacionRepositorio invitaciones) {
+        return new InvitacionesDelUsuario(usuarios, invitaciones);
+    }
+
+    @Bean
+    InvitarAlEvento invitarAlEvento(AccesoEvento acceso, MiembroRepositorio miembros,
+                                    InvitacionRepositorio invitaciones, Transaccion transaccion) {
+        return new InvitarAlEvento(acceso, miembros, invitaciones, transaccion);
+    }
+
+    @Bean
+    ListarInvitacionesDelEvento listarInvitacionesDelEvento(AccesoEvento acceso, InvitacionRepositorio invitaciones) {
+        return new ListarInvitacionesDelEvento(acceso, invitaciones);
+    }
+
+    @Bean
+    CancelarInvitacion cancelarInvitacion(AccesoEvento acceso, InvitacionRepositorio invitaciones) {
+        return new CancelarInvitacion(acceso, invitaciones);
+    }
+
+    @Bean
+    MisInvitaciones misInvitaciones(InvitacionesDelUsuario delUsuario, InvitacionRepositorio invitaciones) {
+        return new MisInvitaciones(delUsuario, invitaciones);
+    }
+
+    @Bean
+    AceptarInvitacion aceptarInvitacion(InvitacionesDelUsuario delUsuario, InvitacionRepositorio invitaciones,
+                                        MiembroRepositorio miembros, Transaccion transaccion) {
+        return new AceptarInvitacion(delUsuario, invitaciones, miembros, transaccion);
+    }
+
+    @Bean
+    RechazarInvitacion rechazarInvitacion(InvitacionesDelUsuario delUsuario, InvitacionRepositorio invitaciones) {
+        return new RechazarInvitacion(delUsuario, invitaciones);
+    }
+
+    @Bean
+    ListarMiembros listarMiembros(AccesoEvento acceso, MiembroRepositorio miembros) {
+        return new ListarMiembros(acceso, miembros);
+    }
+
+    @Bean
+    CambiarRolMiembro cambiarRolMiembro(AccesoEvento acceso, MiembroRepositorio miembros) {
+        return new CambiarRolMiembro(acceso, miembros);
+    }
+
+    @Bean
+    QuitarMiembro quitarMiembro(AccesoEvento acceso, MiembroRepositorio miembros) {
+        return new QuitarMiembro(acceso, miembros);
+    }
+
+    @Bean
+    SalirDelEvento salirDelEvento(AccesoEvento acceso, MiembroRepositorio miembros) {
+        return new SalirDelEvento(acceso, miembros);
     }
 }
