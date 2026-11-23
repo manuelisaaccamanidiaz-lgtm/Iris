@@ -36,17 +36,8 @@ class NotificadorCompuesto implements Notificador {
                     a.referenciaId()));
         }
         if (propiedades.habilitado() && a.tipo().enviaCorreo() && a.email() != null) {
-            correo.enviar(a.email(), asunto(a), a.mensaje() + "\n\n— Iris, tu asistente de eventos (soy una IA)");
+            PlantillaCorreo.Correo c = PlantillaCorreo.para(a, propiedades.urlApp());
+            correo.enviar(a.email(), c.asunto(), c.textoPlano(), c.html());
         }
-    }
-
-    private static String asunto(Aviso a) {
-        return switch (a.tipo()) {
-            case INVITACION_RECIBIDA -> "Iris: tienes una invitación a un evento";
-            case TAREA_VENCE_MANANA -> "Iris: una tarea vence mañana";
-            case TAREA_VENCE_HOY -> "Iris: una tarea vence hoy";
-            case TAREA_VENCIDA -> "Iris: tienes una tarea vencida";
-            default -> "Iris: novedades en tu evento";
-        };
     }
 }
