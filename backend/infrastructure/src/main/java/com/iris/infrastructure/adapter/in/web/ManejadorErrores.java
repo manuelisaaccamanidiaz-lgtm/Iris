@@ -19,6 +19,7 @@ import org.springframework.web.multipart.MaxUploadSizeExceededException;
 import com.iris.application.auth.CredencialesInvalidasException;
 import com.iris.domain.compartido.AccesoDenegadoException;
 import com.iris.domain.compartido.RecursoNoEncontradoException;
+import com.iris.domain.compartido.ConflictoException;
 import com.iris.domain.compartido.ReglaDeNegocioException;
 import com.iris.domain.documento.DocumentoDuplicadoException;
 import com.iris.domain.evento.EventoDuplicadoException;
@@ -99,6 +100,16 @@ class ManejadorErrores {
         }
         log.error("Error inesperado", e);
         return problema(HttpStatus.INTERNAL_SERVER_ERROR, "Error interno", "Ocurrió un error inesperado");
+    }
+
+    /**
+     * 409 para todo conflicto del dominio (ya es miembro, invitación ya respondida...).
+     * ConflictoException HEREDA de ReglaDeNegocioException: Spring elige el handler de la clase
+     * más cercana, así que este gana al de 400 sin tener que tocar el de abajo.
+     */
+    @ExceptionHandler(ConflictoException.class)
+    ProblemDetail conflicto(ConflictoException e) {
+        return problema(HttpStatus.CONFLICT, "Conflicto", e.getMessage()); // 409
     }
 
     @ExceptionHandler(ReglaDeNegocioException.class)

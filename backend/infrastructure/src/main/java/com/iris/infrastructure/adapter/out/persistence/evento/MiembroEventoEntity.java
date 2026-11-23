@@ -26,6 +26,10 @@ public class MiembroEventoEntity {
     @Column(name = "unido_en", nullable = false, updatable = false)
     private Instant unidoEn;
 
+    /** V10: si no es null, la persona archivó el evento (decisión 3c). Lo escribe MiembroRepositorioJdbc */
+    @Column(name = "archivado_en", insertable = false, updatable = false)
+    private Instant archivadoEn;
+
     protected MiembroEventoEntity() {
     }
 
@@ -38,4 +42,5 @@ public class MiembroEventoEntity {
     MiembroEventoId getId() { return id; }
     RolEnEvento getRol() { return rol; }
     Instant getUnidoEn() { return unidoEn; }
+    Instant getArchivadoEn() { return archivadoEn; }
 }

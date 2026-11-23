@@ -50,6 +50,11 @@ public record Evento(
         }
     }
 
+    /** ¿El evento ya terminó? (su último día fue ANTES de hoy) */
+    public boolean terminoAntesDe(LocalDate hoy) {
+        return fechaFin.isBefore(hoy);
+    }
+
     public static Evento crear(UUID creadoPor, String nombre, String descripcion, String lugar,
                                LocalDate fechaInicio, LocalDate fechaFin) {
         return new Evento(null, creadoPor, nombre, descripcion, lugar, fechaInicio, fechaFin, Instant.now());
