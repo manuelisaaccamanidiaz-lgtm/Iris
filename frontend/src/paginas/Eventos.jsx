@@ -24,6 +24,14 @@ export default function Eventos() {
 
   const cambiar = (campo) => (e) => setNuevo({ ...nuevo, [campo]: e.target.value });
 
+  // AVISO SUAVE (decisión de Isaac): ¿las fechas nuevas se cruzan con otro evento mío?
+  // Dos rangos se cruzan si cada uno empieza antes de que termine el otro.
+  // Las fechas "AAAA-MM-DD" se pueden comparar como texto: el orden alfabético es el cronológico
+  const cruces =
+    nuevo.fechaInicio && nuevo.fechaFin
+      ? (eventos ?? []).filter((e) => nuevo.fechaInicio <= e.fechaFin && nuevo.fechaFin >= e.fechaInicio)
+      : [];
+
   async function crear(evento) {
     evento.preventDefault();
     setError(null);
@@ -60,6 +68,11 @@ export default function Eventos() {
           <label className="etiqueta">Inicio<input className="campo" type="date" required value={nuevo.fechaInicio} onChange={cambiar("fechaInicio")} /></label>
           <label className="etiqueta">Fin<input className="campo" type="date" required value={nuevo.fechaFin} onChange={cambiar("fechaFin")} /></label>
           <button className="boton boton-primario">Crear evento</button>
+          {cruces.length > 0 && (
+            <p className="chip chip-coral eventos-cruce">
+              Ojo: estas fechas se cruzan con {cruces.map((e) => `«${e.nombre}»`).join(", ")}. Puedes crearlo igual.
+            </p>
+          )}
         </form>
       )}
 
