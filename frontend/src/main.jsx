@@ -3,6 +3,7 @@ import { createRoot } from "react-dom/client";
 import { BrowserRouter } from "react-router";
 import App from "./App.jsx";
 import { AuthProvider } from "./auth/AuthContext.jsx";
+import { ConfirmacionProvider } from "./componentes/Confirmacion.jsx";
 import "./index.css";
 
 // Aplicar el tema guardado ANTES de pintar, para que el login no "parpadee" en claro
@@ -14,7 +15,9 @@ createRoot(document.getElementById("root")).render(
     {/* BrowserRouter: escucha la URL. AuthProvider: comparte la sesión con toda la app */}
     <BrowserRouter>
       <AuthProvider>
-        <App />
+        <ConfirmacionProvider>
+          <App />
+        </ConfirmacionProvider>
       </AuthProvider>
     </BrowserRouter>
   </StrictMode>,

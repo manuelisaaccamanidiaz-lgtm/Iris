@@ -7,6 +7,7 @@ import { useCallback, useEffect, useState } from "react";
 import { useNavigate, useOutletContext } from "react-router";
 import { api } from "../../api/cliente.js";
 import { useAuth } from "../../auth/AuthContext.jsx";
+import { useConfirmar } from "../../componentes/Confirmacion.jsx";
 import { fecha, fechaHora } from "../../utilidades/fechas.js";
 import "./Equipo.css";
 
@@ -24,6 +25,7 @@ export default function Equipo() {
   const { evento } = useOutletContext();
   const { usuario } = useAuth();
   const navegar = useNavigate();
+  const confirmar = useConfirmar();
   const esPropietario = evento.miRol === "PROPIETARIO";
   const base = `/api/eventos/${evento.id}`;
 
@@ -66,15 +68,27 @@ export default function Equipo() {
   const cambiarRol = (m, rol) =>
     hacer(() => api(`${base}/miembros/${m.usuarioId}`, { metodo: "PATCH", cuerpo: { rol } }), `${m.nombre} ahora es ${NOMBRE_ROL[rol].toLowerCase()}.`);
 
-  const quitar = (m) =>
-    window.confirm(`¿Quitar a ${m.nombre} del evento? Sus tareas quedarán sin responsable.`) &&
-    hacer(() => api(`${base}/miembros/${m.usuarioId}`, { metodo: "DELETE" }), `${m.nombre} ya no está en el equipo.`);
+  async function quitar(m) {
+    const ok = await confirmar({
+      titulo: `¿Quitar a ${m.nombre} del evento?`,
+      mensaje: "Perderá el acceso y sus tareas quedarán sin responsable para que alguien más las tome.",
+      accion: "Quitar",
+      peligro: true,
+    });
+    if (ok) hacer(() => api(`${base}/miembros/${m.usuarioId}`, { metodo: "DELETE" }), `${m.nombre} ya no está en el equipo.`);
+  }
 
   const cancelar = (inv) =>
     hacer(() => api(`${base}/invitaciones/${inv.id}`, { metodo: "DELETE" }), "Invitación cancelada.");
 
   async function salir() {
-    if (!window.confirm(`¿Salir de «${evento.nombre}»?`)) return;
+    const ok = await confirmar({
+      titulo: `¿Salir de «${evento.nombre}»?`,
+      mensaje: "Dejarás de ver sus documentos, tareas y agenda. Para volver, alguien tendrá que invitarte.",
+      accion: "Salir",
+      peligro: true,
+    });
+    if (!ok) return;
     setError(null);
     try {
       await api(`${base}/miembros/yo`, { metodo: "DELETE" });

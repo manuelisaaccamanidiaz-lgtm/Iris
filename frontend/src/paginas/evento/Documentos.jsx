@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useOutletContext } from "react-router";
 import { api } from "../../api/cliente.js";
+import { useConfirmar } from "../../componentes/Confirmacion.jsx";
 import "./Documentos.css";
 
 const ESTADO = {
@@ -14,6 +15,7 @@ const kb = (bytes) => (bytes < 1024 * 1024 ? `${Math.round(bytes / 1024)} KB` : 
 
 export default function Documentos() {
   const { evento, puedeEditar } = useOutletContext();
+  const confirmar = useConfirmar();
   const [documentos, setDocumentos] = useState(null);
   const [error, setError] = useState(null);
   const [subiendo, setSubiendo] = useState(false);
@@ -56,7 +58,13 @@ export default function Documentos() {
 
   async function borrar(doc) {
     // confirm() es un diálogo del navegador: suficiente para una acción destructiva sencilla
-    if (!window.confirm(`¿Borrar «${doc.nombreArchivo}»? Se borran también sus fragmentos y las propuestas pendientes.`)) return;
+    const ok = await confirmar({
+      titulo: `¿Borrar «${doc.nombreArchivo}»?`,
+      mensaje: "Se borran también sus fragmentos y las propuestas pendientes de Iris. Las tareas ya creadas se quedan.",
+      accion: "Borrar",
+      peligro: true,
+    });
+    if (!ok) return;
     setError(null);
     try {
       await api(`/api/eventos/${evento.id}/documentos/${doc.id}`, { metodo: "DELETE" });

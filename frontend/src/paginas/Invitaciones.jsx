@@ -5,6 +5,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router";
 import { api } from "../api/cliente.js";
+import { useConfirmar } from "../componentes/Confirmacion.jsx";
 import { fecha, fechaHora } from "../utilidades/fechas.js";
 import "./Invitaciones.css";
 
@@ -12,6 +13,7 @@ const ROL = { PROPIETARIO: "propietario", EDITOR: "editor", LECTOR: "lector" };
 
 export default function Invitaciones() {
   const navegar = useNavigate();
+  const confirmar = useConfirmar();
   const [invitaciones, setInvitaciones] = useState(null);
   const [error, setError] = useState(null);
   const [ocupada, setOcupada] = useState(null); // id de la que se está respondiendo (evita el doble clic)
@@ -33,7 +35,13 @@ export default function Invitaciones() {
   }
 
   async function rechazar(inv) {
-    if (!window.confirm(`¿Rechazar la invitación a «${inv.nombreEvento}»?`)) return;
+    const ok = await confirmar({
+      titulo: `¿Rechazar la invitación a «${inv.nombreEvento}»?`,
+      mensaje: "Si cambias de opinión, alguien del equipo tendrá que invitarte de nuevo.",
+      accion: "Rechazar",
+      peligro: true,
+    });
+    if (!ok) return;
     setError(null);
     setOcupada(inv.id);
     try {
