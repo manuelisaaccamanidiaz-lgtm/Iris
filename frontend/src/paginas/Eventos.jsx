@@ -1,15 +1,10 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router";
 import { api } from "../api/cliente.js";
+import { fecha } from "../utilidades/fechas.js";
 import "./Eventos.css";
 
 const ROL = { PROPIETARIO: "Propietario", EDITOR: "Editor", LECTOR: "Lector" };
-
-/** "2026-12-09" -> "9 dic 2026". OJO: new Date("2026-12-09") se interpreta en UTC y en Bogotá daría el 8 */
-function fecha(iso) {
-  const [a, m, d] = iso.split("-").map(Number);
-  return new Date(a, m - 1, d).toLocaleDateString("es-CO", { day: "numeric", month: "short", year: "numeric" });
-}
 
 export default function Eventos() {
   const [eventos, setEventos] = useState(null); // null = cargando; [] = no hay

@@ -5,6 +5,7 @@
 import { useEffect, useState } from "react";
 import { Link, NavLink, Outlet } from "react-router";
 import { useAuth } from "../auth/AuthContext.jsx";
+import Campanita from "./Campanita.jsx";
 import "./Layout.css";
 
 /** Tema guardado (en localStorage: es una PREFERENCIA, no un dato sensible) o el del sistema. */
@@ -34,8 +35,10 @@ export default function Layout() {
           <NavLink to="/" end>
             Mis eventos
           </NavLink>
+          <NavLink to="/invitaciones">Invitaciones</NavLink>
         </nav>
         <div className="barra-derecha">
+          <Campanita />
           <button
             className="boton"
             onClick={() => setTema(tema === "dark" ? "light" : "dark")}

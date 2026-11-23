@@ -1,0 +1,28 @@
+/*
+ * Fechas para mostrar. Dos tipos llegan del backend:
+ *  - LocalDate "2026-12-09"        (fechas de eventos, tareas, sesiones): SIN hora ni zona
+ *  - Instant  "2026-11-23T15:04:05Z" (cuándo pasó algo): un instante en UTC
+ */
+const ES = "es-CO";
+
+/** "2026-12-09" -> "9 dic 2026". OJO: new Date("2026-12-09") se lee en UTC y en Bogotá daría el día 8 */
+export function fecha(iso) {
+  if (!iso) return "";
+  const [a, m, d] = iso.split("-").map(Number);
+  return new Date(a, m - 1, d).toLocaleDateString(ES, { day: "numeric", month: "short", year: "numeric" });
+}
+
+/** Un instante UTC en la hora local del navegador: "23 nov, 3:04 p. m." */
+export function fechaHora(instante) {
+  if (!instante) return "";
+  return new Date(instante).toLocaleString(ES, { day: "numeric", month: "short", hour: "numeric", minute: "2-digit" });
+}
+
+/** "hace 5 min", "hace 2 h", "hace 3 d" (para la campanita) */
+export function haceCuanto(instante) {
+  const minutos = Math.round((Date.now() - new Date(instante).getTime()) / 60000);
+  if (minutos < 1) return "ahora";
+  if (minutos < 60) return `hace ${minutos} min`;
+  if (minutos < 1440) return `hace ${Math.round(minutos / 60)} h`;
+  return `hace ${Math.round(minutos / 1440)} d`;
+}

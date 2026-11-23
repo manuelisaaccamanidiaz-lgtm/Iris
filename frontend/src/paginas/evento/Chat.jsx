@@ -78,7 +78,8 @@ export default function Chat() {
       setMensajes((actuales) => actuales.slice(0, -1)); // no quedó nada útil: quitamos la burbuja
     } finally {
       setEscribiendo(false);
-      actualizarUltimo(() => ({ enVivo: false }));
+      // Si se detuvo antes del primer trozo, la burbuja no queda vacía
+      actualizarUltimo((m) => ({ enVivo: false, respuesta: m.respuesta || "Detuviste la respuesta." }));
     }
   }
 
@@ -116,7 +117,7 @@ export default function Chat() {
               {m.respuesta || (m.enVivo && <span className="texto-suave">Iris está leyendo tus documentos…</span>)}
               {m.enVivo && m.respuesta && <span className="cursor" aria-hidden="true">▍</span>}
               {!m.enVivo && m.sinEvidencia && (
-                <p className="chip chip-coral chat-aviso">No encontré esto en tus documentos</p>
+                <p className="chip chip-coral chat-aviso">Sin fuentes en tus documentos</p>
               )}
               {!m.enVivo && m.fuentes?.length > 0 && (
                 <ul className="chat-fuentes">

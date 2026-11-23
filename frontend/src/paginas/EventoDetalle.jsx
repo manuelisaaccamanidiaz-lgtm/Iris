@@ -42,6 +42,7 @@ export default function EventoDetalle() {
       <nav className="pestanas">
         <NavLink to="chat">Pregúntale a Iris</NavLink>
         <NavLink to="documentos">Documentos</NavLink>
+        <NavLink to="equipo">Equipo</NavLink>
       </nav>
       <Outlet context={{ evento, puedeEditar }} />
     </section>

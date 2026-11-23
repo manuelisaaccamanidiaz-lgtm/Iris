@@ -7,8 +7,10 @@ import RutaPrivada from "./auth/RutaPrivada.jsx";
 import Layout from "./componentes/Layout.jsx";
 import Chat from "./paginas/evento/Chat.jsx";
 import Documentos from "./paginas/evento/Documentos.jsx";
+import Equipo from "./paginas/evento/Equipo.jsx";
 import EventoDetalle from "./paginas/EventoDetalle.jsx";
 import Eventos from "./paginas/Eventos.jsx";
+import Invitaciones from "./paginas/Invitaciones.jsx";
 import Login from "./paginas/Login.jsx";
 import Registro from "./paginas/Registro.jsx";
 
@@ -19,11 +21,13 @@ export default function App() {
       <Route path="/registro" element={<Registro />} />
       <Route element={<RutaPrivada><Layout /></RutaPrivada>}>
         <Route index element={<Eventos />} />
+        <Route path="invitaciones" element={<Invitaciones />} />
         <Route path="eventos/:eventoId" element={<EventoDetalle />}>
           {/* /eventos/:id a secas -> la pestaña del chat */}
           <Route index element={<Navigate to="chat" replace />} />
           <Route path="chat" element={<Chat />} />
           <Route path="documentos" element={<Documentos />} />
+          <Route path="equipo" element={<Equipo />} />
         </Route>
       </Route>
       {/* Cualquier otra URL: a la página principal */}
