@@ -1,5 +1,6 @@
 package com.iris.infrastructure.adapter.out.persistence.agenda;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -23,4 +24,7 @@ interface TareaJpaRepository extends JpaRepository<TareaEntity, UUID> {
     List<TareaEntity> findByEventoIdAndEstadoAndResponsableId(UUID eventoId, EstadoTarea estado, UUID responsableId);
 
     Optional<TareaEntity> findByIdAndEventoId(UUID id, UUID eventoId);
+
+    // Despertador (4.3). "LessThanEqual" = fecha_limite <= :hasta; las que no tienen fecha (NULL) no entran
+    List<TareaEntity> findByEstadoAndFechaLimiteLessThanEqual(EstadoTarea estado, LocalDate hasta);
 }

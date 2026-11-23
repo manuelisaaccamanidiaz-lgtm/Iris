@@ -1,5 +1,6 @@
 package com.iris.domain.agenda;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -19,4 +20,7 @@ public interface TareaRepositorio {
     Optional<Tarea> buscarEnEvento(UUID tareaId, UUID eventoId);
 
     void eliminar(UUID tareaId);
+
+    /** Para el despertador (4.3): tareas PENDIENTES de TODOS los eventos con fecha límite <= hasta. */
+    List<Tarea> listarPendientesQueVencenHasta(LocalDate hasta);
 }

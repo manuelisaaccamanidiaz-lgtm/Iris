@@ -60,6 +60,12 @@ class TareaRepositorioJpaAdapter implements TareaRepositorio {
         jpa.deleteById(tareaId);
     }
 
+    @Override
+    public List<Tarea> listarPendientesQueVencenHasta(LocalDate hasta) {
+        return jpa.findByEstadoAndFechaLimiteLessThanEqual(EstadoTarea.PENDIENTE, hasta).stream()
+                .map(this::aDominio).toList();
+    }
+
     private TareaEntity aEntity(Tarea t) {
         return new TareaEntity(t.id(), t.eventoId(), t.titulo(), t.descripcion(), t.fechaLimite(), t.estado(),
                 t.responsableId(), t.origen(), t.creadoPor(), t.creadoEn(), t.actualizadoEn(), t.completadaEn());
