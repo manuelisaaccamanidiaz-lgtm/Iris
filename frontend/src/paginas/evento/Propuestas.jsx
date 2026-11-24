@@ -59,8 +59,12 @@ export default function PropuestasProtegida() {
   return puedeEditar ? <Propuestas /> : null;
 }
 
+const CADA_MS = 3000; // mientras Iris lee, preguntamos cada 3 s (igual que Documentos al indexar)
+
 function Propuestas() {
   const { evento } = useOutletContext();
+  // Si llegaste desde Documentos con "Ver propuestas", trae el documento para dejarlo elegido
+  const documentoDeOrigen = useLocation().state?.documentoId;
   const confirmar = useConfirmar();
   const base = `/api/eventos/${evento.id}`;
 
@@ -69,7 +73,9 @@ function Propuestas() {
   const [documentos, setDocumentos] = useState([]);
   const [miembros, setMiembros] = useState([]);
   const [revisando, setRevisando] = useState(null); // id del documento que Iris está leyendo
-  const [documentoElegido, setDocumentoElegido] = useState("");
+  const [documentoElegido, setDocumentoElegido] = useState(documentoDeOrigen ?? "");
+  // Lo que Iris está leyendo AHORA: documentos que se indexan (y luego ella revisa sola) o que está revisando
+  const [leyendo, setLeyendo] = useState([]); // [{ id, nombre }]
   const [ajustando, setAjustando] = useState(null); // { id, ...campos } de la propuesta que se está ajustando
   const [ocupada, setOcupada] = useState(null);
   const [error, setError] = useState(null);
@@ -84,16 +90,38 @@ function Propuestas() {
     cargar();
   }, [cargar]);
 
-  useEffect(() => {
-    api(`${base}/documentos`)
-      .then((docs) => {
-        const listos = docs.filter((d) => d.estado === "INDEXADO");
-        setDocumentos(listos);
-        if (listos.length) setDocumentoElegido(listos[0].id);
-      })
-      .catch(() => {});
-    api(`${base}/miembros`).then(setMiembros).catch(() => {});
+  /** Documentos listos + qué está leyendo Iris. Las dos preguntas van JUNTAS (Promise.all). */
+  const consultarLectura = useCallback(async () => {
+    const [docs, enRevision] = await Promise.all([api(`${base}/documentos`), api(`${base}/propuestas/en-revision`)]);
+    const listos = docs.filter((d) => d.estado === "INDEXADO");
+    setDocumentos(listos);
+    setDocumentoElegido((actual) => (listos.some((d) => d.id === actual) ? actual : listos[0]?.id ?? ""));
+    // PROCESANDO también cuenta: al terminar de indexar, Iris lo revisa sola
+    setLeyendo(docs.filter((d) => d.estado === "PROCESANDO" || enRevision.includes(d.id))
+      .map((d) => ({ id: d.id, nombre: d.nombreArchivo })));
   }, [base]);
+
+  useEffect(() => {
+    consultarLectura().catch(() => {});
+    api(`${base}/miembros`).then(setMiembros).catch(() => {});
+  }, [base, consultarLectura]);
+
+  // Polling SOLO mientras Iris lee algo. Cuando termina (de "leyendo algo" a "nada"), recargamos solos
+  const estabaLeyendo = useRef(false);
+  useEffect(() => {
+    const hayLectura = leyendo.length > 0;
+    if (estabaLeyendo.current && !hayLectura) {
+      setAviso("Iris terminó de leer. Estas son sus propuestas.");
+      setEstado("PENDIENTE");
+      cargar();
+    }
+    estabaLeyendo.current = hayLectura;
+    if (!hayLectura) return;
+    const id = setTimeout(() => consultarLectura().catch(() => {}), CADA_MS);
+    return () => clearTimeout(id); // limpieza: si sales de la pestaña, se deja de preguntar
+  }, [leyendo, consultarLectura, cargar]);
+
+  const elegidoOcupado = leyendo.some((d) => d.id === documentoElegido);
 
   function limpiar() {
     setError(null);
@@ -112,7 +140,13 @@ function Propuestas() {
       setEstado("PENDIENTE");
       cargar();
     } catch (e) {
-      setError(mensajeLocal(e));
+      if (e.estado === 409) {
+        // Ya lo estaba leyendo (la revisión automática): no es un error, solo esperamos con ella
+        setAviso(e.message);
+        consultarLectura().catch(() => {});
+      } else {
+        setError(mensajeLocal(e));
+      }
     } finally {
       setRevisando(null);
     }
@@ -204,13 +238,14 @@ function Propuestas() {
           <label className="etiqueta">
             Pedirle a Iris que revise
             <select className="campo" value={documentoElegido} onChange={(e) => setDocumentoElegido(e.target.value)}
-              disabled={!documentos.length || revisando}>
+              disabled={!documentos.length || Boolean(revisando)}>
               {!documentos.length && <option value="">No hay documentos listos</option>}
               {documentos.map((d) => <option key={d.id} value={d.id}>{d.nombreArchivo}</option>)}
             </select>
           </label>
-          <button className="boton boton-coral" onClick={revisar} disabled={!documentoElegido || revisando}>
-            {revisando ? "Iris está leyendo…" : "Revisar documento"}
+          <button className="boton boton-coral" onClick={revisar}
+            disabled={!documentoElegido || Boolean(revisando) || elegidoOcupado}>
+            {revisando || elegidoOcupado ? "Iris está leyendo…" : "Revisar documento"}
           </button>
           <p className="texto-suave">Al volver a revisar, reemplazo las propuestas pendientes de ese documento. Las que ya decidiste se quedan.</p>
         </div>
@@ -225,6 +260,11 @@ function Propuestas() {
         ))}
       </div>
 
+      {leyendo.length > 0 && (
+        <p className="chip chip-coral propuestas-leyendo" role="status">
+          Iris está leyendo {leyendo.map((d) => `«${d.nombre}»`).join(", ")}… Sus propuestas aparecerán aquí solas.
+        </p>
+      )}
       {error && <p className="aviso-error" role="alert">{error}</p>}
       {aviso && <p className="chip propuestas-aviso" role="status">{aviso}</p>}
       {propuestas === null && <p className="cargando">Cargando propuestas…</p>}

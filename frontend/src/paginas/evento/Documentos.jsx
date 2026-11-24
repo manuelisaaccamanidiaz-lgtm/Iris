@@ -112,7 +112,7 @@ export default function Documentos() {
                 {d.estado === "ERROR" && d.errorMensaje && <span className="texto-error">{d.errorMensaje}</span>}
               </div>
               <span className={`chip ${estado.clase}`}>{estado.texto}</span>
-              {puedeEditar && d.estado === "INDEXADO" && <Link to="../propuestas">Ver propuestas de Iris</Link>}
+              {puedeEditar && d.estado === "INDEXADO" && <Link to="../propuestas" state={{ documentoId: d.id }}>Ver propuestas de Iris</Link>}
               {puedeEditar && (
                 <button className="boton boton-peligro" onClick={() => borrar(d)}>
                   Borrar

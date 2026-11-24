@@ -32,3 +32,9 @@
 /* Descartar: secundario, con el texto en coral (decisión de Isaac): se nota, pero no compite con Aceptar */
 .boton-texto-coral { color: var(--coral-ink); }
 .boton-texto-coral:hover { border-color: var(--coral); }
+
+/* "Iris está leyendo…": el mismo coral de la acción de revisar, con un punto que late */
+.propuestas-leyendo { align-self: flex-start; border-radius: var(--radius-md); padding: var(--space-2) var(--space-3); white-space: normal; }
+.propuestas-leyendo::before { content: ""; display: inline-block; width: 8px; height: 8px; margin-right: var(--space-2); border-radius: 50%; background: currentColor; animation: latido 1.2s ease-in-out infinite; }
+@keyframes latido { 50% { opacity: 0.25; } }
+@media (prefers-reduced-motion: reduce) { .propuestas-leyendo::before { animation: none; } }
