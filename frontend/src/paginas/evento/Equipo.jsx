@@ -5,7 +5,7 @@
  */
 import { useCallback, useEffect, useState } from "react";
 import { useNavigate, useOutletContext } from "react-router";
-import { api } from "../../api/cliente.js";
+import { api, mensajeLocal } from "../../api/cliente.js";
 import { useAuth } from "../../auth/AuthContext.jsx";
 import { useConfirmar } from "../../componentes/Confirmacion.jsx";
 import { fecha, fechaHora } from "../../utilidades/fechas.js";
@@ -36,7 +36,7 @@ export default function Equipo() {
   const [aviso, setAviso] = useState(null);
 
   const cargar = useCallback(() => {
-    api(`${base}/miembros`).then(setMiembros).catch((e) => setError(e.message));
+    api(`${base}/miembros`).then(setMiembros).catch((e) => setError(mensajeLocal(e)));
     if (esPropietario) api(`${base}/invitaciones`).then(setInvitaciones).catch(() => {});
   }, [base, esPropietario]);
 
@@ -53,7 +53,7 @@ export default function Equipo() {
       if (mensajeOk) setAviso(mensajeOk);
       cargar();
     } catch (e) {
-      setError(e.message);
+      setError(mensajeLocal(e));
     }
   }
 
@@ -94,7 +94,7 @@ export default function Equipo() {
       await api(`${base}/miembros/yo`, { metodo: "DELETE" });
       navegar("/", { replace: true });
     } catch (e) {
-      setError(e.message); // p. ej. el creador antes de que el evento termine
+      setError(mensajeLocal(e)); // p. ej. el creador antes de que el evento termine
     }
   }
 

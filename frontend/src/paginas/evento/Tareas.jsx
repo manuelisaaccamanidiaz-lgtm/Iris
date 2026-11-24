@@ -7,7 +7,7 @@
  */
 import { useCallback, useEffect, useState } from "react";
 import { useOutletContext } from "react-router";
-import { api } from "../../api/cliente.js";
+import { api, mensajeLocal } from "../../api/cliente.js";
 import { useAuth } from "../../auth/AuthContext.jsx";
 import { useConfirmar } from "../../componentes/Confirmacion.jsx";
 import { fecha, hoyIso, sumarDias } from "../../utilidades/fechas.js";
@@ -50,7 +50,7 @@ export default function Tareas() {
     const parametros = new URLSearchParams();
     if (estado) parametros.set("estado", estado);
     if (mias) parametros.set("mias", "true");
-    return api(`${base}?${parametros}`).then(setTareas).catch((e) => setError(e.message));
+    return api(`${base}?${parametros}`).then(setTareas).catch((e) => setError(mensajeLocal(e)));
   }, [base, estado, mias]);
 
   useEffect(() => {
@@ -76,7 +76,7 @@ export default function Tareas() {
       setFormulario(null);
       cargar();
     } catch (err) {
-      setError(err.message);
+      setError(mensajeLocal(err));
     }
   }
 
@@ -89,7 +89,7 @@ export default function Tareas() {
       await api(`${base}/${t.id}/estado`, { metodo: "PATCH", cuerpo: { estado: nuevo } });
     } catch (err) {
       setTareas((lista) => lista.map((x) => (x.id === t.id ? t : x)));
-      setError(err.message);
+      setError(mensajeLocal(err));
     }
   }
 
@@ -100,7 +100,7 @@ export default function Tareas() {
       await api(`${base}/${t.id}`, { metodo: "DELETE" });
       setTareas(tareas.filter((x) => x.id !== t.id));
     } catch (err) {
-      setError(err.message);
+      setError(mensajeLocal(err));
     }
   }
 

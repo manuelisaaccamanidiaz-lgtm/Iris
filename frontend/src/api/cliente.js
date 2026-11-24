@@ -20,13 +20,34 @@ export class ErrorApi extends Error {
     super(detalle);
     this.estado = estado;
     this.titulo = titulo;
+    // GENERAL = no es de un formulario, es de la app: sin conexión (0), sin permiso (403), servidor (5xx)
+    this.general = estado === 0 || estado === 403 || estado >= 500;
   }
 }
+
+/**
+ * El mensaje para el bloque de error DE LA PANTALLA. Los errores generales ya salieron como aviso
+ * emergente (componentes/Avisos.jsx): devolver null evita mostrar el mismo error dos veces.
+ */
+export const mensajeLocal = (e) => (e.general ? null : e.message);
 
 // Qué hacer cuando el token vence (8 h): el AuthContext se suscribe aquí y cierra la sesión
 let alExpirar = () => {};
 export function cuandoExpire(funcion) {
   alExpirar = funcion;
+}
+
+// Qué hacer con un error GENERAL: el AvisosProvider se suscribe aquí y muestra el aviso emergente
+let alFallarGeneral = () => {};
+export function cuandoFalleGeneral(funcion) {
+  alFallarGeneral = funcion;
+}
+
+/** Crea el error y, si es general, lo anuncia ANTES de lanzarlo (así nadie tiene que acordarse). */
+function fallar(estado, titulo, detalle) {
+  const error = new ErrorApi(estado, titulo, detalle);
+  if (error.general) alFallarGeneral(error);
+  return error;
 }
 
 /** URL completa de una ruta del backend (la usa el chat en streaming, que necesita fetch directo). */
@@ -56,7 +77,7 @@ export async function api(ruta, { metodo = "GET", cuerpo, formulario } = {}) {
     respuesta = await fetch(BASE + ruta, { method: metodo, headers: cabeceras, body });
   } catch {
     // fetch solo lanza si NO hubo respuesta: backend apagado, sin red, CORS bloqueado
-    throw new ErrorApi(0, "Sin conexión", "No pude conectarme con Iris. ¿Está encendido el backend?");
+    throw fallar(0, "Sin conexión", "No pude conectarme con Iris. ¿Está encendido el backend?");
   }
 
   // 401 CON token = el token venció o es inválido: cerramos la sesión
@@ -71,7 +92,7 @@ export async function api(ruta, { metodo = "GET", cuerpo, formulario } = {}) {
     } catch {
       // la respuesta de error no traía JSON
     }
-    throw new ErrorApi(
+    throw fallar(
       respuesta.status,
       problema.title ?? "Error",
       problema.detail ?? "Algo salió mal. Inténtalo de nuevo.",

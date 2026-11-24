@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Link, useOutletContext } from "react-router";
-import { api } from "../../api/cliente.js";
+import { api, mensajeLocal } from "../../api/cliente.js";
 import { useConfirmar } from "../../componentes/Confirmacion.jsx";
 import "./Documentos.css";
 
@@ -23,7 +23,7 @@ export default function Documentos() {
 
   // useCallback: la MISMA función entre renders (si no, el efecto de abajo se repetiría sin parar)
   const cargar = useCallback(() => {
-    return api(`/api/eventos/${evento.id}/documentos`).then(setDocumentos).catch((e) => setError(e.message));
+    return api(`/api/eventos/${evento.id}/documentos`).then(setDocumentos).catch((e) => setError(mensajeLocal(e)));
   }, [evento.id]);
 
   useEffect(() => {
@@ -49,7 +49,7 @@ export default function Documentos() {
       await api(`/api/eventos/${evento.id}/documentos`, { metodo: "POST", formulario });
       await cargar();
     } catch (err) {
-      setError(err.message); // 409 duplicado, 413 muy grande, 400 no es PDF...
+      setError(mensajeLocal(err)); // 409 duplicado, 413 muy grande, 400 no es PDF...
     } finally {
       setSubiendo(false);
       entradaArchivo.current.value = ""; // para poder volver a elegir el mismo archivo
@@ -70,7 +70,7 @@ export default function Documentos() {
       await api(`/api/eventos/${evento.id}/documentos/${doc.id}`, { metodo: "DELETE" });
       setDocumentos(documentos.filter((d) => d.id !== doc.id));
     } catch (err) {
-      setError(err.message); // 403 si no lo subiste ni eres propietario; 409 si se está indexando
+      setError(mensajeLocal(err)); // 403 si no lo subiste ni eres propietario; 409 si se está indexando
     }
   }
 

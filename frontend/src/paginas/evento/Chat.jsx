@@ -5,7 +5,7 @@
  */
 import { useEffect, useRef, useState } from "react";
 import { useOutletContext } from "react-router";
-import { api } from "../../api/cliente.js";
+import { api, mensajeLocal } from "../../api/cliente.js";
 import { preguntarEnVivo } from "../../api/streaming.js";
 import "./Chat.css";
 
@@ -28,7 +28,7 @@ export default function Chat() {
   useEffect(() => {
     api(`/api/eventos/${evento.id}/consultas`)
       .then((historial) => setMensajes([...historial].reverse()))
-      .catch((e) => setError(e.message));
+      .catch((e) => setError(mensajeLocal(e)));
     return () => control.current?.abort(); // si me voy de la página, corto la respuesta en curso
   }, [evento.id]);
 
@@ -74,7 +74,7 @@ export default function Chat() {
         control.current.signal,
       );
     } catch (e) {
-      setError(e.message);
+      setError(mensajeLocal(e));
       setMensajes((actuales) => actuales.slice(0, -1)); // no quedó nada útil: quitamos la burbuja
     } finally {
       setEscribiendo(false);

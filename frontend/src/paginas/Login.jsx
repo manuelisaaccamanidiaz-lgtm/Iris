@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router";
+import { mensajeLocal } from "../api/cliente.js";
 import { useAuth } from "../auth/AuthContext.jsx";
 import "./Acceso.css";
 
@@ -21,7 +22,7 @@ export default function Login() {
       await entrar(email, password);
       navegar(ubicacion.state?.desde ?? "/", { replace: true }); // volver a donde ibas
     } catch (e) {
-      setError(e.message);
+      setError(mensajeLocal(e));
     } finally {
       setEnviando(false);
     }

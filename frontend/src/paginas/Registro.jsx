@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router";
+import { mensajeLocal } from "../api/cliente.js";
 import { useAuth } from "../auth/AuthContext.jsx";
 import "./Acceso.css";
 
@@ -22,7 +23,7 @@ export default function Registro() {
       await registrar(datos.nombre, datos.email, datos.password);
       navegar("/", { replace: true });
     } catch (e) {
-      setError(e.message); // p. ej. 409 "Ese email ya está registrado" del backend
+      setError(mensajeLocal(e)); // p. ej. 409 "Ese email ya está registrado" del backend
     } finally {
       setEnviando(false);
     }

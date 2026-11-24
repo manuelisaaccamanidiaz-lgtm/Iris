@@ -4,7 +4,7 @@
  */
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router";
-import { api } from "../api/cliente.js";
+import { api, mensajeLocal } from "../api/cliente.js";
 import { useConfirmar } from "../componentes/Confirmacion.jsx";
 import { fecha, fechaHora } from "../utilidades/fechas.js";
 import "./Invitaciones.css";
@@ -19,7 +19,7 @@ export default function Invitaciones() {
   const [ocupada, setOcupada] = useState(null); // id de la que se está respondiendo (evita el doble clic)
 
   useEffect(() => {
-    api("/api/invitaciones").then(setInvitaciones).catch((e) => setError(e.message));
+    api("/api/invitaciones").then(setInvitaciones).catch((e) => setError(mensajeLocal(e)));
   }, []);
 
   async function aceptar(inv) {
@@ -29,7 +29,7 @@ export default function Invitaciones() {
       await api(`/api/invitaciones/${inv.id}/aceptar`, { metodo: "POST" });
       navegar(`/eventos/${inv.eventoId}`);
     } catch (e) {
-      setError(e.message); // 409 si venció o ya la habías respondido
+      setError(mensajeLocal(e)); // 409 si venció o ya la habías respondido
       setOcupada(null);
     }
   }
@@ -48,7 +48,7 @@ export default function Invitaciones() {
       await api(`/api/invitaciones/${inv.id}/rechazar`, { metodo: "POST" });
       setInvitaciones(invitaciones.filter((i) => i.id !== inv.id));
     } catch (e) {
-      setError(e.message);
+      setError(mensajeLocal(e));
     } finally {
       setOcupada(null);
     }

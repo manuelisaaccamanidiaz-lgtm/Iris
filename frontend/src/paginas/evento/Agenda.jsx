@@ -5,7 +5,7 @@
  */
 import { useCallback, useEffect, useState } from "react";
 import { useOutletContext } from "react-router";
-import { api } from "../../api/cliente.js";
+import { api, mensajeLocal } from "../../api/cliente.js";
 import { useConfirmar } from "../../componentes/Confirmacion.jsx";
 import { diaLargo, hora } from "../../utilidades/fechas.js";
 import "./Agenda.css";
@@ -32,7 +32,7 @@ export default function Agenda() {
   const [formulario, setFormulario] = useState(null); // null = cerrado; { ...datos, id? } = abierto
   const [error, setError] = useState(null);
 
-  const cargar = useCallback(() => api(base).then(setSesiones).catch((e) => setError(e.message)), [base]);
+  const cargar = useCallback(() => api(base).then(setSesiones).catch((e) => setError(mensajeLocal(e))), [base]);
   useEffect(() => {
     cargar();
   }, [cargar]);
@@ -48,7 +48,7 @@ export default function Agenda() {
       setFormulario(null);
       cargar();
     } catch (err) {
-      setError(err.message); // p. ej. 400 "La fecha debe estar dentro del evento"
+      setError(mensajeLocal(err)); // p. ej. 400 "La fecha debe estar dentro del evento"
     }
   }
 
@@ -59,7 +59,7 @@ export default function Agenda() {
       await api(`${base}/${s.id}`, { metodo: "DELETE" });
       setSesiones(sesiones.filter((x) => x.id !== s.id));
     } catch (err) {
-      setError(err.message);
+      setError(mensajeLocal(err));
     }
   }
 

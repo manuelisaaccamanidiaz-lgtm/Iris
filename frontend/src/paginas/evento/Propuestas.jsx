@@ -7,9 +7,10 @@
  *   Descartar            -> queda como historial
  * Solo EDITORES y PROPIETARIOS (decisión de Isaac): un lector ni siquiera ve la pestaña.
  */
-import { useCallback, useEffect, useState } from "react";
-import { Link, Navigate, useOutletContext } from "react-router";
-import { api } from "../../api/cliente.js";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { Link, useLocation, useNavigate, useOutletContext } from "react-router";
+import { api, mensajeLocal } from "../../api/cliente.js";
+import { useAvisos } from "../../componentes/Avisos.jsx";
 import { useConfirmar } from "../../componentes/Confirmacion.jsx";
 import { fecha, hora } from "../../utilidades/fechas.js";
 import "./Propuestas.css";
@@ -41,7 +42,21 @@ const paginas = (f) => (f.paginaInicio === f.paginaFin ? `pág. ${f.paginaInicio
  */
 export default function PropuestasProtegida() {
   const { puedeEditar } = useOutletContext();
-  return puedeEditar ? <Propuestas /> : <Navigate to="../chat" replace />;
+  const avisos = useAvisos();
+  const navegar = useNavigate();
+  const ubicacion = useLocation();
+  const yaAvisado = useRef(false); // en desarrollo, StrictMode corre los efectos DOS veces: sin esto, volveríamos 2 pasos
+
+  useEffect(() => {
+    if (puedeEditar || yaAvisado.current) return;
+    yaAvisado.current = true;
+    avisos.error("No tienes permiso", "Las propuestas de Iris son solo para editores y propietarios de este evento.");
+    // key "default" = es la PRIMERA página que abriste en Iris (pegaste la URL): no hay "atrás" al que volver
+    if (ubicacion.key !== "default") navegar(-1);
+    else navegar("../chat", { replace: true });
+  }, [puedeEditar, avisos, navegar, ubicacion.key]);
+
+  return puedeEditar ? <Propuestas /> : null;
 }
 
 function Propuestas() {
@@ -61,7 +76,7 @@ function Propuestas() {
   const [aviso, setAviso] = useState(null);
 
   const cargar = useCallback(
-    () => api(`${base}/propuestas?estado=${estado}`).then(setPropuestas).catch((e) => setError(e.message)),
+    () => api(`${base}/propuestas?estado=${estado}`).then(setPropuestas).catch((e) => setError(mensajeLocal(e))),
     [base, estado],
   );
   useEffect(() => {
@@ -97,7 +112,7 @@ function Propuestas() {
       setEstado("PENDIENTE");
       cargar();
     } catch (e) {
-      setError(e.message);
+      setError(mensajeLocal(e));
     } finally {
       setRevisando(null);
     }
@@ -113,7 +128,7 @@ function Propuestas() {
       setAjustando(null);
       setAviso(p.tipo === "TAREA" ? `Listo, agregué «${ajustes?.titulo ?? p.titulo}» a las tareas.` : `Listo, agendé «${ajustes?.titulo ?? p.titulo}».`);
     } catch (e) {
-      setError(e.message); // 409 si alguien ya la decidió; 400 si un ajuste es inválido
+      setError(mensajeLocal(e)); // 409 si alguien ya la decidió; 400 si un ajuste es inválido
     } finally {
       setOcupada(null);
     }
@@ -128,7 +143,7 @@ function Propuestas() {
       setPropuestas((lista) => lista.filter((x) => x.id !== p.id));
       setAviso(`«${p.titulo}» volvió a Por revisar.`);
     } catch (e) {
-      setError(e.message);
+      setError(mensajeLocal(e));
     } finally {
       setOcupada(null);
     }
@@ -147,7 +162,7 @@ function Propuestas() {
       await api(`${base}/propuestas/${p.id}/descartar`, { metodo: "POST" });
       setPropuestas((lista) => lista.filter((x) => x.id !== p.id));
     } catch (e) {
-      setError(e.message);
+      setError(mensajeLocal(e));
     } finally {
       setOcupada(null);
     }
@@ -217,7 +232,9 @@ function Propuestas() {
         <div className="tarjeta propuestas-vacio">
           <h2>{estado === "PENDIENTE" ? "No tienes propuestas por revisar" : "Todavía no hay nada aquí"}</h2>
           <p className="texto-suave">
-            {estado === "PENDIENTE" ? "Sube un contrato o un cronograma y lo leeré apenas termine de indexarse, o pídemelo arriba." : ""}
+            {estado === "PENDIENTE"
+              ? "Leo cada documento sola apenas termina de indexarse. Si no ves nada, es que no encontré acciones nuevas: no repito lo que ya existe en el evento ni lo que descartaste."
+              : ""}
           </p>
         </div>
       )}

@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router";
-import { api } from "../api/cliente.js";
+import { api, mensajeLocal } from "../api/cliente.js";
 import { fecha } from "../utilidades/fechas.js";
 import "./Eventos.css";
 
@@ -14,7 +14,7 @@ export default function Eventos() {
 
   // useEffect con [] = "al aparecer la página, una sola vez"
   useEffect(() => {
-    api("/api/eventos").then(setEventos).catch((e) => setError(e.message));
+    api("/api/eventos").then(setEventos).catch((e) => setError(mensajeLocal(e)));
   }, []);
 
   const cambiar = (campo) => (e) => setNuevo({ ...nuevo, [campo]: e.target.value });
@@ -36,7 +36,7 @@ export default function Eventos() {
       setNuevo({ nombre: "", lugar: "", fechaInicio: "", fechaFin: "" });
       setCreando(false);
     } catch (e) {
-      setError(e.message); // p. ej. 409 "Ya tienes un evento con ese nombre..."
+      setError(mensajeLocal(e)); // p. ej. 409 "Ya tienes un evento con ese nombre..."
     }
   }
 
