@@ -109,6 +109,7 @@ export default function Tareas() {
 
   return (
     <div className="tareas">
+      <h1>Tareas</h1>
       <div className="tareas-barra">
         <div className="tareas-filtros" role="group" aria-label="Filtrar tareas">
           {FILTROS.map((f) => (

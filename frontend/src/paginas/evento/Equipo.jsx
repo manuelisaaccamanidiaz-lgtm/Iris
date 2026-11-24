@@ -100,6 +100,7 @@ export default function Equipo() {
 
   return (
     <div className="equipo">
+      <h1>Equipo</h1>
       {error && <p className="aviso-error" role="alert">{error}</p>}
       {aviso && <p className="chip equipo-aviso" role="status">{aviso}</p>}
 
@@ -127,7 +128,7 @@ export default function Equipo() {
       )}
 
       <div className="tarjeta">
-        <h2>Equipo</h2>
+        <h2>Miembros</h2>
         {miembros === null && <p className="texto-suave">Cargando…</p>}
         <ul className="equipo-lista">
           {miembros?.map((m) => {

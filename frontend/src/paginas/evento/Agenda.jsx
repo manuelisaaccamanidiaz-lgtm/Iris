@@ -69,6 +69,7 @@ export default function Agenda() {
 
   return (
     <div className="agenda">
+      <h1>Agenda</h1>
       <div className="agenda-cabecera">
         <p className="texto-suave">Del {diaLargo(evento.fechaInicio)} al {diaLargo(evento.fechaFin)}.</p>
         {puedeEditar && !formulario && (

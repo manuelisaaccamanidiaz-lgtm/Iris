@@ -76,6 +76,7 @@ export default function Documentos() {
 
   return (
     <div className="documentos">
+      <h1>Documentos</h1>
       <div className="documentos-cabecera">
         <p className="texto-suave">
           Iris lee estos documentos para responder y proponer tareas. Su texto se envía a Gemini para indexarlo:

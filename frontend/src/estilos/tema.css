@@ -52,6 +52,9 @@
   --barra: #0f3b39;
   --on-barra: #ffffff;
   --on-barra-suave: #b9d9d3;
+  /* 6.4: la barra LATERAL del evento, con el degradado del diseño original (petróleo -> azul).
+     El texto blanco alcanza más de 7:1 en los dos extremos */
+  --lateral: linear-gradient(180deg, #0f3b39 0%, #12384f 100%);
 
   /* v2: un color FUERTE por tipo de sesión, siempre con texto encima que alcanza 4.5:1 */
   --tipo-conferencia: #0a7d70;  --on-tipo-conferencia: #ffffff;
@@ -85,6 +88,7 @@
   --barra: #0b1413;
   --on-barra: #e8eef2;
   --on-barra-suave: #a3b1bd;
+  --lateral: linear-gradient(180deg, #0b1413 0%, #0c1824 100%);
   --tipo-conferencia: #2ec4b0;  --on-tipo-conferencia: #04201c;
   --tipo-taller: #ff8e70;       --on-tipo-taller: #1e293b;
   --tipo-panel: #b3a6f2;        --on-tipo-panel: #14102e;

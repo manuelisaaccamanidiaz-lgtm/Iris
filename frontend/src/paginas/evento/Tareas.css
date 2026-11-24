@@ -17,3 +17,11 @@
 .tarea-acciones { display: flex; gap: var(--space-2); }
 /* Hecha: tachada y más suave, pero legible */
 .tarea-hecha .tarea-titulo strong { text-decoration: line-through; color: var(--ink-muted); }
+/* 6.4 Celular: todo en una columna, nada se sale de la pantalla */
+@media (max-width: 639px) {
+  .tareas-formulario { grid-template-columns: 1fr; }
+  .tarea { flex-wrap: wrap; }
+  .tarea-info { min-width: 0; flex-basis: calc(100% - 40px); }
+  .tarea-acciones { width: 100%; justify-content: flex-end; }
+  .tareas-mias { margin-left: 0; }
+}
