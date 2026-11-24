@@ -97,6 +97,20 @@ public final class ValidadorPropuestas {
         return new Resultado(validas, motivos);
     }
 
+    /** Primero el fragmento que indicó la IA (si existe), luego todos los demás en orden. */
+    private static List<TextoFragmento> enOrdenDeBusqueda(List<TextoFragmento> fragmentos, int indicado) {
+        List<TextoFragmento> orden = new ArrayList<>(fragmentos.size());
+        if (indicado >= 1 && indicado <= fragmentos.size()) {
+            orden.add(fragmentos.get(indicado - 1));
+        }
+        for (int i = 0; i < fragmentos.size(); i++) {
+            if (i != indicado - 1) {
+                orden.add(fragmentos.get(i));
+            }
+        }
+        return orden;
+    }
+
     /** Anota el motivo y devuelve null (= descartada), para escribir {@code return descartar(...)}. */
     private static Propuesta descartar(Map<String, Integer> motivos, String motivo) {
         motivos.merge(motivo, 1, Integer::sum);
@@ -107,11 +121,21 @@ public final class ValidadorPropuestas {
     static Propuesta convertir(PropuestaIA ia, List<TextoFragmento> fragmentos, UUID documentoId,
                                String documentoNombre, Evento evento, Contexto contexto,
                                Map<String, Integer> motivos) {
-        if (ia == null || ia.titulo() == null || ia.fragmento() < 1 || ia.fragmento() > fragmentos.size()) {
-            return descartar(motivos, "sin título o fragmento inexistente");
+        if (ia == null || ia.titulo() == null || ia.titulo().isBlank()) {
+            return descartar(motivos, "sin título");
         }
-        TextoFragmento fuente = fragmentos.get(ia.fragmento() - 1);
-        String citaReal = citaVerificada(ia.cita(), fuente.contenido());
+        // v3: el NÚMERO de fragmento es una pista de la IA; la PRUEBA es la cita. Si la IA se equivocó de
+        // número (a veces escribe la página, que va al lado en el prompt), buscamos la cita en los demás.
+        // Se sigue exigiendo texto REAL del documento: solo dejamos de botar propuestas por un número mal puesto.
+        TextoFragmento fuente = null;
+        String citaReal = null;
+        for (TextoFragmento f : enOrdenDeBusqueda(fragmentos, ia.fragmento())) {
+            citaReal = citaVerificada(ia.cita(), f.contenido());
+            if (citaReal != null) {
+                fuente = f; // las páginas salen del fragmento donde de verdad está la cita
+                break;
+            }
+        }
         if (citaReal == null) {
             return descartar(motivos, "cita que no está en el documento"); // no se parece a nada del texto
         }

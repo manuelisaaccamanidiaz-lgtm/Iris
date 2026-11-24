@@ -52,6 +52,18 @@ class ValidadorPropuestasTest {
     }
 
     @Test
+    void siLaIaSeEquivocaDeNumeroDeFragmentoSeBuscaLaCitaEnLosDemas() {
+        // La IA escribió 7 (quizá la página): ese fragmento no existe, pero la cita sí está en el [1]
+        PropuestaIA conNumeroMalo = new PropuestaIA("TAREA", "Montar stands", "", "2026-12-09", "", "", "", "", 7,
+                "El montaje de stands se hará el 9 de diciembre");
+
+        List<Propuesta> r = validar(conNumeroMalo, vacio);
+
+        assertEquals(1, r.size());
+        assertEquals(2, r.get(0).paginaInicio()); // la página del fragmento donde DE VERDAD está la cita
+    }
+
+    @Test
     void unaCitaInventadaSeDescarta() {
         assertTrue(validar(ia("Pedir desayuno", "", "el hotel regalará el desayuno a todos los invitados"), vacio).isEmpty());
     }
