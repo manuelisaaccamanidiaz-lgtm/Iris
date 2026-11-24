@@ -2,5 +2,106 @@ spring:
   application:
     name: iris
 
+  # Lee el .env de la raíz del proyecto como si fuera un archivo .properties.
+  # Dos rutas porque depende de desde dónde arranques la app:
+  #   ./.env       -> si arrancas desde la raíz (VS Code)
+  #   ../../.env   -> si arrancas desde backend/infrastructure (Maven)
+  # "optional:" = si no lo encuentra, no falla (en producción vendrían del sistema).
+  config:
+    import:
+      - optional:file:./.env[.properties]
+      - optional:file:../../.env[.properties]
+
+  datasource:
+    url: jdbc:postgresql://localhost:${DB_PORT}/${POSTGRES_DB}
+    username: ${POSTGRES_USER}
+    password: ${POSTGRES_PASSWORD}
+
+  jpa:
+    # Flyway es el dueño del esquema; Hibernate solo VALIDA que las entidades coincidan
+    hibernate:
+      ddl-auto: validate
+    # Evita consultas a la BD escondidas en la capa web (mala práctica en APIs REST)
+    open-in-view: false
+
+  flyway:
+    locations: classpath:db/migration
+
+  # Correo (Día 4.3). Por defecto: Mailpit en Docker (sin usuario ni cifrado).
+  # Para Gmail, en el .env: MAIL_HOST=smtp.gmail.com, MAIL_PORT=587, MAIL_SMTP_AUTH=true,
+  # MAIL_STARTTLS=true, MAIL_USUARIO y MAIL_PASSWORD (contraseña de aplicación)
+  mail:
+    host: ${MAIL_HOST:localhost}
+    port: ${MAIL_PORT:1025}
+    username: ${MAIL_USUARIO:}
+    password: ${MAIL_PASSWORD:}
+    properties:
+      "[mail.smtp.auth]": ${MAIL_SMTP_AUTH:false}
+      "[mail.smtp.starttls.enable]": ${MAIL_STARTTLS:false}
+      # La documentación de Spring Boot avisa que algunos timeouts son INFINITOS por defecto:
+      # sin esto, un servidor de correo colgado dejaría un hilo bloqueado para siempre
+      "[mail.smtp.connectiontimeout]": 5000
+      "[mail.smtp.timeout]": 3000
+      "[mail.smtp.writetimeout]": 5000
+
+  # Límite de subida: Spring rechaza el archivo ANTES de leerlo completo si lo supera
+  servlet:
+    multipart:
+      max-file-size: 20MB
+      max-request-size: 21MB
+
+# Configuración propia de Iris
+iris:
+  jwt:
+    # Clave para firmar los tokens (HS256). Mínimo 32 caracteres. Viene del .env
+    secreto: ${JWT_SECRET}
+    # Cuánto dura una sesión antes de pedir login otra vez
+    duracion: 8h
+  documentos:
+    # Carpeta de copias temporales. Por defecto, la carpeta temporal del sistema (fuera del repo)
+    directorio-temporal: ${IRIS_DIRECTORIO_TEMPORAL:${java.io.tmpdir}/iris}
+    # Debe coincidir con spring.servlet.multipart.max-file-size
+    tamano-maximo: 20MB
+  ia:
+    embeddings:
+      # Clave de Google AI Studio. Viene del .env (NUNCA en el código)
+      api-key: ${GEMINI_API_KEY}
+      modelo: gemini-embedding-001
+      # Debe coincidir con vector(1536) de la tabla fragmentos
+      dimensiones: 1536
+    chat:
+      # Groq (API compatible con OpenAI). La clave viene del .env
+      api-key: ${GROQ_API_KEY}
+      base-url: https://api.groq.com/openai/v1
+      # llama-3.3-70b-versatile no está disponible para todas las cuentas; gpt-oss-120b sí
+      modelo: ${GROQ_MODELO:openai/gpt-oss-120b}
+      # 0.2 = respuestas estables y fieles a los datos (para fechas y montos no queremos creatividad)
+      temperatura: 0.2
+      max-tokens: 800
+  consulta:
+    # Un fragmento que NO comparte palabras con la pregunta solo cuenta como evidencia si su
+    # similitud supera este valor. Calibrado con datos reales (Día 3): preguntas sin relación
+    # con el evento ~0.40; relacionadas con sinónimos ~0.55. Lo dudoso lo filtra la regla 3 del prompt
+    umbral-similitud: 0.50
+  cors:
+    # Frontend de React con Vite (puerto por defecto 5173). Varios: separados por coma
+    origenes: ${CORS_ORIGENES:http://localhost:5173}
+  correo:
+    # Interruptor: si el correo falla el día de la demo, CORREO_HABILITADO=false y sigue la campanita
+    habilitado: ${CORREO_HABILITADO:false}
+    remitente: ${CORREO_REMITENTE:Iris <notificaciones@iris.local>}
+    # A dónde llevan los botones de los correos: la app de React (Día 5)
+    url-app: ${FRONTEND_URL:http://localhost:5173}
+  recordatorios:
+    # El despertador (decisión 2A): todos los días a las 6:00 a. m. de Bogotá
+    # (segundo minuto hora día mes día-de-la-semana)
+    cron: ${RECORDATORIOS_CRON:0 0 6 * * *}
+    zona: America/Bogota
+  admin:
+    # Primer administrador. Vacío = no se crea. El ":" da un valor por defecto (vacío)
+    nombre: ${IRIS_ADMIN_NOMBRE:Administrador}
+    email: ${IRIS_ADMIN_EMAIL:}
+    password: ${IRIS_ADMIN_PASSWORD:}
+
 server:
   port: 8080

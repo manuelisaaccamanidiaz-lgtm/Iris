@@ -22,3 +22,6 @@ Thumbs.db
 # Logs y temporales
 *.log
 tmp/
+
+# Scripts personales de prueba
+scripts/

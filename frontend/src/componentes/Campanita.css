@@ -1,0 +1,26 @@
+.campanita { position: relative; }
+.campanita-boton { position: relative; padding: var(--space-2); }
+.campanita-contador {
+  position: absolute; top: -6px; right: -6px; min-width: 20px; height: 20px; padding: 0 5px;
+  border-radius: var(--radius-pill); background: var(--coral); color: var(--on-coral);
+  font: 600 11px/20px var(--font-sans); text-align: center;
+}
+.campanita-panel {
+  position: absolute; right: 0; top: calc(100% + var(--space-2)); z-index: 10;
+  width: min(380px, calc(100vw - 24px)); max-height: 480px; overflow-y: auto; padding: var(--space-3);
+}
+.campanita-cabecera { display: flex; justify-content: space-between; align-items: center; gap: var(--space-2); margin-bottom: var(--space-2); }
+.campanita-lista { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: var(--space-1); }
+.campanita-aviso {
+  width: 100%; text-align: left; display: flex; flex-direction: column; gap: 2px;
+  padding: var(--space-2) var(--space-3); border: 0; border-radius: var(--radius-md);
+  background: transparent; color: var(--ink); font: 400 14px/20px var(--font-sans); cursor: pointer;
+}
+.campanita-aviso:hover { background: var(--surface); }
+/* No leída: fondo de Iris + un punto. Nunca solo el color: el lector de pantalla lee el texto */
+.campanita-aviso.no-leida { background: var(--brand-soft); color: var(--brand-ink); }
+/* El panel vive DENTRO de la barra oscura: le devolvemos los colores normales de tarjeta */
+.campanita-panel { color: var(--ink); }
+.campanita-panel .texto-suave { color: var(--ink-muted); }
+.barra .campanita-panel .boton { background: var(--surface-card); color: var(--ink); border-color: var(--border); }
+.barra .campanita-panel .boton:hover { border-color: var(--brand); }

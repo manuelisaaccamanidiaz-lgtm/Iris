@@ -1,0 +1,46 @@
+/* Avisos emergentes: abajo a la derecha, encima de todo, sin tapar la barra de escribir del chat en móvil */
+.avisos {
+  position: fixed;
+  right: var(--space-4);
+  bottom: var(--space-4);
+  z-index: 1000;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  width: min(380px, calc(100vw - 32px));
+  pointer-events: none; /* el contenedor no bloquea clics; cada aviso sí los recibe */
+}
+.aviso {
+  pointer-events: auto;
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-4);
+  background: var(--surface-card);
+  color: var(--ink);
+  border: 1px solid var(--border);
+  border-left: 4px solid var(--brand); /* la franja de color dice QUÉ tipo de aviso es */
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-card);
+  animation: aviso-entra 0.2s ease-out;
+}
+.aviso-error { border-left-color: var(--danger); }
+.aviso-exito { border-left-color: var(--success); }
+.aviso-texto { flex: 1; display: flex; flex-direction: column; gap: 2px; font-size: 0.9rem; }
+.aviso-texto span { color: var(--ink-muted); }
+.aviso-cerrar {
+  border: 0;
+  background: none;
+  color: var(--ink-muted);
+  font-size: 1.2rem;
+  line-height: 1;
+  cursor: pointer;
+  padding: 0 var(--space-1);
+}
+.aviso-cerrar:hover { color: var(--ink); }
+@keyframes aviso-entra {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: none; }
+}
+/* Quien pidió menos movimiento en su sistema, no ve la animación */
+@media (prefers-reduced-motion: reduce) { .aviso { animation: none; } }

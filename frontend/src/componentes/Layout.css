@@ -1,0 +1,33 @@
+.marco { min-height: 100%; display: flex; flex-direction: column; }
+.barra {
+  display: flex; align-items: center; gap: var(--space-6);
+  padding: var(--space-3) var(--space-8);
+  background: var(--barra); color: var(--on-barra);
+}
+/* Dentro de la barra oscura, los botones son "fantasma": transparentes con borde suave */
+.barra .boton { background: transparent; color: var(--on-barra); border-color: rgba(255, 255, 255, 0.28); }
+.barra .boton:hover { background: rgba(255, 255, 255, 0.1); border-color: var(--on-barra-suave); }
+.barra .texto-suave { color: var(--on-barra-suave); }
+.barra-nav { display: flex; gap: var(--space-4); }
+.barra-nav a {
+  color: var(--on-barra-suave); text-decoration: none; font-weight: 600;
+  padding: var(--space-1) var(--space-2); border-radius: var(--radius-sm);
+}
+/* NavLink agrega la clase "active" sola cuando la URL coincide */
+.barra-nav a:hover { color: var(--on-barra); }
+.barra-nav a.active { color: var(--on-barra); background: rgba(255, 255, 255, 0.12); }
+.barra-derecha { margin-left: auto; display: flex; align-items: center; gap: var(--space-3); }
+.contenido { flex: 1; width: 100%; max-width: 1100px; margin: 0 auto; padding: var(--space-8); }
+
+/* --- 6.4 Responsive de la barra superior (Mis eventos e Invitaciones) --- */
+@media (max-width: 899px) {
+  .barra { flex-wrap: wrap; gap: var(--space-3); padding: var(--space-3) var(--space-4); }
+  .barra-email { display: none; } /* el email ya sale en "Salir"; en pantalla chica no cabe */
+  .contenido { padding: var(--space-6) var(--space-4); }
+}
+@media (max-width: 639px) {
+  /* la navegación baja a su propia fila, a todo el ancho */
+  .barra-nav { order: 3; width: 100%; }
+  .barra-nav a { flex: 1; text-align: center; }
+  .contenido { padding: var(--space-4) var(--space-3); }
+}

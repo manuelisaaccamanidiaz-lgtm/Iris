@@ -1,0 +1,37 @@
+# Base de datos de Iris: PostgreSQL 18 con la extensión pgvector ya instalada.
+# Uso: copia .env.example a .env, pon tus valores y ejecuta "docker compose up -d".
+services:
+  db:
+    # Imagen oficial de pgvector, con versión fija para que no cambie sola
+    image: pgvector/pgvector:0.8.2-pg18-trixie
+    container_name: iris-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    ports:
+      # puerto_de_tu_PC:puerto_del_contenedor
+      - "${DB_PORT}:5432"
+    volumes:
+      # En PostgreSQL 18 los datos viven bajo /var/lib/postgresql
+      - iris-db-data:/var/lib/postgresql
+    healthcheck:
+      # Docker pregunta cada 5 s si la base ya acepta conexiones
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  # Servidor de correo de PRUEBAS (Día 4.3): recibe por SMTP lo que Iris envía y lo muestra
+  # en http://localhost:8025. Nada sale a Internet. Versión fija, como la de la base de datos
+  mail:
+    image: axllent/mailpit:v1.27
+    container_name: iris-mail
+    restart: unless-stopped
+    ports:
+      - "8025:8025"   # interfaz web
+      - "1025:1025"   # SMTP
+
+volumes:
+  iris-db-data:
