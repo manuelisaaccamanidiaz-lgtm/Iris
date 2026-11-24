@@ -5,7 +5,9 @@ import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.Set;
 import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
 
 import com.iris.application.notificacion.Avisos;
 import com.iris.application.port.out.AnalizadorDocumentos;
@@ -14,6 +16,7 @@ import com.iris.domain.agenda.Sesion;
 import com.iris.domain.agenda.SesionRepositorio;
 import com.iris.domain.agenda.Tarea;
 import com.iris.domain.agenda.TareaRepositorio;
+import com.iris.domain.compartido.ConflictoException;
 import com.iris.domain.documento.Documento;
 import com.iris.domain.documento.DocumentoRepositorio;
 import com.iris.domain.documento.EstadoDocumento;
@@ -53,6 +56,15 @@ public class GenerarPropuestas {
     private final TareaRepositorio tareas;
     private final SesionRepositorio sesiones;
 
+    /**
+     * Documentos que Iris está revisando AHORA. Sin esto, la revisión automática (al indexar) y la de
+     * pedido (el botón) corrían A LA VEZ sobre el mismo documento: dos llamadas grandes a Groq juntas
+     * (límite de tokens por minuto) y dos "borrar pendientes + insertar" mezclados.
+     * "add" en un set concurrente es atómico: si dos hilos llegan juntos, solo uno recibe true.
+     * Límite honesto: vive en memoria, sirve para UNA instancia del backend (la nuestra).
+     */
+    private final Set<UUID> enRevision = ConcurrentHashMap.newKeySet();
+
     public GenerarPropuestas(FragmentoRepositorio fragmentos, ContadorTokens contador,
                              AnalizadorDocumentos analizador, PropuestaRepositorio propuestas,
                              DocumentoRepositorio documentos, EventoRepositorio eventos, Avisos avisos,
@@ -70,6 +82,17 @@ public class GenerarPropuestas {
 
     /** El núcleo: quien llama ya comprobó permisos y que el documento esté INDEXADO. */
     public List<Propuesta> ejecutar(Documento doc, Evento evento) {
+        if (!enRevision.add(doc.id())) {
+            throw new ConflictoException("Iris ya está revisando este documento. Espera unos segundos y actualiza las propuestas.");
+        }
+        try {
+            return generar(doc, evento);
+        } finally {
+            enRevision.remove(doc.id()); // finally: se libera aunque Groq falle
+        }
+    }
+
+    private List<Propuesta> generar(Documento doc, Evento evento) {
         List<TextoFragmento> texto = PromptPropuestas.seleccionar(fragmentos.listarTextosDelDocumento(doc.id()), contador);
         if (texto.isEmpty()) {
             return List.of();
@@ -94,7 +117,8 @@ public class GenerarPropuestas {
         ValidadorPropuestas.Resultado r = ValidadorPropuestas.validar(brutas, texto, doc.id(), doc.nombreArchivo(), evento,
                 ValidadorPropuestas.Contexto.de(hoy, yaExisten, descartadas));
         if (r.descartadas() > 0) {
-            LOG.log(Level.INFO, "Propuestas descartadas por el validador en «" + doc.nombreArchivo() + "»: " + r.descartadas());
+            LOG.log(Level.INFO, "Propuestas descartadas por el validador en «" + doc.nombreArchivo() + "»: "
+                    + r.descartadas() + " " + r.motivos());
         }
         List<Propuesta> guardadas = propuestas.reemplazarPendientesDelDocumento(doc.id(), r.validas());
 
@@ -120,6 +144,12 @@ public class GenerarPropuestas {
         documentos.buscarParaProcesar(documentoId)
                 .filter(d -> d.estado() == EstadoDocumento.INDEXADO && d.subidoPor() != null)
                 .ifPresent(d -> eventos.buscarComoMiembro(d.eventoId(), d.subidoPor())
-                        .ifPresent(e -> ejecutar(d, e.evento())));
+                        .ifPresent(e -> {
+                            try {
+                                ejecutar(d, e.evento());
+                            } catch (ConflictoException yaEnCurso) {
+                                // alguien ya pulsó "revisar": no hace falta una segunda revisión
+                            }
+                        }));
     }
 }

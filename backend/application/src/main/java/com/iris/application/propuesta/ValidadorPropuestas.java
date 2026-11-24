@@ -8,8 +8,10 @@ import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -65,46 +67,64 @@ public final class ValidadorPropuestas {
         }
     }
 
-    public record Resultado(List<Propuesta> validas, int descartadas) {
+    /**
+     * @param motivos por qué se descartó cada una ("ya existe": 3, "cita inventada": 1...). Va al log:
+     *                "descartó 6" no ayuda a nadie; "6 porque ya existían" sí (era lo que pasaba).
+     */
+    public record Resultado(List<Propuesta> validas, Map<String, Integer> motivos) {
+
+        public int descartadas() {
+            return motivos.values().stream().mapToInt(Integer::intValue).sum();
+        }
     }
 
     public static Resultado validar(List<PropuestaIA> ias, List<TextoFragmento> fragmentos, UUID documentoId,
                                     String documentoNombre, Evento evento, Contexto contexto) {
         List<Propuesta> validas = new ArrayList<>();
         Set<String> vistas = new HashSet<>();
-        int descartadas = 0;
+        Map<String, Integer> motivos = new LinkedHashMap<>();
         for (PropuestaIA ia : ias == null ? List.<PropuestaIA>of() : ias) {
-            Propuesta p = convertir(ia, fragmentos, documentoId, documentoNombre, evento, contexto);
-            if (p == null || !vistas.add(normalizar(p.titulo()))) {
-                descartadas++;
+            Propuesta p = convertir(ia, fragmentos, documentoId, documentoNombre, evento, contexto, motivos);
+            if (p == null) {
+                continue; // convertir() ya anotó el motivo
+            }
+            if (!vistas.add(normalizar(p.titulo()))) {
+                descartar(motivos, "repetida en el mismo lote");
                 continue;
             }
             validas.add(p);
         }
-        return new Resultado(validas, descartadas);
+        return new Resultado(validas, motivos);
+    }
+
+    /** Anota el motivo y devuelve null (= descartada), para escribir {@code return descartar(...)}. */
+    private static Propuesta descartar(Map<String, Integer> motivos, String motivo) {
+        motivos.merge(motivo, 1, Integer::sum);
+        return null;
     }
 
     /** null = descartada. */
     static Propuesta convertir(PropuestaIA ia, List<TextoFragmento> fragmentos, UUID documentoId,
-                               String documentoNombre, Evento evento, Contexto contexto) {
+                               String documentoNombre, Evento evento, Contexto contexto,
+                               Map<String, Integer> motivos) {
         if (ia == null || ia.titulo() == null || ia.fragmento() < 1 || ia.fragmento() > fragmentos.size()) {
-            return null; // sin título, o cita un fragmento que no existe
+            return descartar(motivos, "sin título o fragmento inexistente");
         }
         TextoFragmento fuente = fragmentos.get(ia.fragmento() - 1);
         String citaReal = citaVerificada(ia.cita(), fuente.contenido());
         if (citaReal == null) {
-            return null; // lo que "citó" la IA no se parece a nada del documento
+            return descartar(motivos, "cita que no está en el documento"); // no se parece a nada del texto
         }
         String titulo = normalizar(ia.titulo());
         if (contexto.existentes().contains(titulo)) {
-            return null; // ya existe como tarea, sesión o propuesta
+            return descartar(motivos, "ya existe en el evento"); // tarea, sesión o propuesta
         }
 
         TipoPropuesta tipo;
         try {
             tipo = TipoPropuesta.valueOf(ia.tipo().trim().toUpperCase(Locale.ROOT));
         } catch (RuntimeException e) {
-            return null;
+            return descartar(motivos, "tipo desconocido");
         }
         LocalDate fecha = fecha(ia.fecha());
         LocalTime inicio = hora(ia.horaInicio());
@@ -114,7 +134,7 @@ public final class ValidadorPropuestas {
         boolean yaDescartada = contexto.descartados().contains(titulo);
         if (yaDescartada) {
             if (fecha == null) {
-                return null; // descartada y sin plazo: respetamos la decisión de la persona
+                return descartar(motivos, "ya la descartaste"); // y sin plazo: respetamos la decisión
             }
             notas.add("La descartaste antes, pero el documento fija un plazo para esto.");
         }
@@ -137,7 +157,7 @@ public final class ValidadorPropuestas {
                     esSesion ? tipoSesion(ia.tipoSesion()) : null, citaReal,
                     fuente.paginaInicio(), fuente.paginaFin());
         } catch (ReglaDeNegocioException e) {
-            return null;
+            return descartar(motivos, "datos inválidos (" + e.getMessage() + ")");
         }
     }
 

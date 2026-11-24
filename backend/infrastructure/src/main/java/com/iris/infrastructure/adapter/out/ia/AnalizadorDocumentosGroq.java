@@ -16,6 +16,7 @@ import org.springframework.stereotype.Component;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.iris.application.port.out.AnalizadorDocumentos;
+import com.iris.application.port.out.IaNoDisponibleException;
 import com.iris.infrastructure.config.ChatPropiedades;
 
 /**
@@ -55,7 +56,13 @@ class AnalizadorDocumentosGroq implements AnalizadorDocumentos {
             json = llamar(sistema, contenido, OpenAiChatModel.ResponseFormat.Type.JSON_SCHEMA);
         } catch (RuntimeException e) {
             log.warn("Groq rechazó JSON Schema ({}); reintento con JSON Object Mode", e.getMessage());
-            json = llamar(sistema, contenido, OpenAiChatModel.ResponseFormat.Type.JSON_OBJECT);
+            try {
+                json = llamar(sistema, contenido, OpenAiChatModel.ResponseFormat.Type.JSON_OBJECT);
+            } catch (RuntimeException otra) {
+                // Fallaron los DOS intentos: casi siempre es el límite de tokens por minuto de Groq (429)
+                log.error("Groq no respondió a las propuestas", otra);
+                throw new IaNoDisponibleException("Groq no respondió: " + otra.getMessage(), otra);
+            }
         }
         RespuestaIA respuesta = conversor.convert(json);
         if (respuesta == null || respuesta.propuestas() == null) {
