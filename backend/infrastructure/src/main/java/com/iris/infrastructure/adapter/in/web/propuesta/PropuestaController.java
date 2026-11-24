@@ -23,6 +23,7 @@ import com.iris.application.propuesta.DescartarPropuesta;
 import com.iris.application.propuesta.ListarPropuestas;
 import com.iris.application.propuesta.RecuperarPropuesta;
 import com.iris.application.propuesta.RevisarDocumento;
+import com.iris.application.propuesta.RevisionesEnCurso;
 import com.iris.domain.propuesta.EstadoPropuesta;
 import com.iris.domain.propuesta.Propuesta;
 
@@ -36,14 +37,22 @@ class PropuestaController {
     private final AceptarPropuesta aceptar;
     private final DescartarPropuesta descartar;
     private final RecuperarPropuesta recuperar;
+    private final RevisionesEnCurso enCurso;
 
     PropuestaController(RevisarDocumento revisar, ListarPropuestas listar, AceptarPropuesta aceptar,
-                        DescartarPropuesta descartar, RecuperarPropuesta recuperar) {
+                        DescartarPropuesta descartar, RecuperarPropuesta recuperar, RevisionesEnCurso enCurso) {
         this.revisar = revisar;
         this.listar = listar;
         this.aceptar = aceptar;
         this.descartar = descartar;
         this.recuperar = recuperar;
+        this.enCurso = enCurso;
+    }
+
+    /** Ids de los documentos que Iris está leyendo ahora: la pantalla deja el botón en "leyendo…". */
+    @GetMapping("/propuestas/en-revision")
+    List<UUID> enRevision(@AuthenticationPrincipal Jwt jwt, @PathVariable UUID eventoId) {
+        return enCurso.ejecutar(usuario(jwt), eventoId);
     }
 
     /** "Iris, revisa este documento". Tarda unos segundos: la IA lee el documento completo (con tope). */

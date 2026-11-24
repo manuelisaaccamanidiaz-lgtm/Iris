@@ -96,7 +96,7 @@ class ManejadorErrores {
     @ExceptionHandler(IaNoDisponibleException.class)
     ProblemDetail iaNoDisponible(IaNoDisponibleException e) {
         return problema(HttpStatus.SERVICE_UNAVAILABLE, "Iris está ocupada",
-                "El servicio de IA no respondió (puede ser el límite de uso por minuto). Intenta de nuevo en un minuto.");
+                "El servicio de IA falló o respondió algo que no pude leer (puede ser el límite de uso por minuto). Intenta de nuevo en un minuto.");
     }
 
     @ExceptionHandler(Exception.class)

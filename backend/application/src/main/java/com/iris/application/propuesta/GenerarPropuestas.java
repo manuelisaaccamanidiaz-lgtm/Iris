@@ -4,8 +4,8 @@ import java.lang.System.Logger.Level;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
-import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -57,13 +57,15 @@ public class GenerarPropuestas {
     private final SesionRepositorio sesiones;
 
     /**
-     * Documentos que Iris está revisando AHORA. Sin esto, la revisión automática (al indexar) y la de
+     * Documentos que Iris está revisando AHORA (documento -> su evento, para poder contestar
+     * "¿qué está leyendo Iris en ESTE evento?" y mostrarlo en pantalla). Sin esto, la revisión automática (al indexar) y la de
      * pedido (el botón) corrían A LA VEZ sobre el mismo documento: dos llamadas grandes a Groq juntas
      * (límite de tokens por minuto) y dos "borrar pendientes + insertar" mezclados.
-     * "add" en un set concurrente es atómico: si dos hilos llegan juntos, solo uno recibe true.
-     * Límite honesto: vive en memoria, sirve para UNA instancia del backend (la nuestra).
+     * "putIfAbsent" en un mapa concurrente es atómico: si dos hilos llegan juntos, solo uno recibe null.
+     * Límite honesto: vive en la MEMORIA de este proceso; con dos servidores habría dos mapas distintos
+     * (ahí haría falta un candado en la base de datos). Para una instancia, como la nuestra, basta.
      */
-    private final Set<UUID> enRevision = ConcurrentHashMap.newKeySet();
+    private final Map<UUID, UUID> enRevision = new ConcurrentHashMap<>();
 
     public GenerarPropuestas(FragmentoRepositorio fragmentos, ContadorTokens contador,
                              AnalizadorDocumentos analizador, PropuestaRepositorio propuestas,
@@ -82,7 +84,7 @@ public class GenerarPropuestas {
 
     /** El núcleo: quien llama ya comprobó permisos y que el documento esté INDEXADO. */
     public List<Propuesta> ejecutar(Documento doc, Evento evento) {
-        if (!enRevision.add(doc.id())) {
+        if (enRevision.putIfAbsent(doc.id(), doc.eventoId()) != null) {
             throw new ConflictoException("Iris ya está revisando este documento. Espera unos segundos y actualiza las propuestas.");
         }
         try {
@@ -90,6 +92,11 @@ public class GenerarPropuestas {
         } finally {
             enRevision.remove(doc.id()); // finally: se libera aunque Groq falle
         }
+    }
+
+    /** Los documentos de este evento que Iris está leyendo ahora mismo (la pantalla los muestra "en proceso"). */
+    public List<UUID> enRevisionDelEvento(UUID eventoId) {
+        return enRevision.entrySet().stream().filter(e -> e.getValue().equals(eventoId)).map(Map.Entry::getKey).toList();
     }
 
     private List<Propuesta> generar(Documento doc, Evento evento) {

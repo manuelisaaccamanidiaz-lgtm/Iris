@@ -47,6 +47,7 @@ import com.iris.application.propuesta.GenerarPropuestas;
 import com.iris.application.propuesta.ListarPropuestas;
 import com.iris.application.propuesta.RecuperarPropuesta;
 import com.iris.application.propuesta.RevisarDocumento;
+import com.iris.application.propuesta.RevisionesEnCurso;
 import com.iris.application.evento.CrearEvento;
 import com.iris.application.evento.ListarEventos;
 import com.iris.application.port.out.AlmacenTemporal;
@@ -302,6 +303,11 @@ public class CasosDeUsoConfig {
     @Bean
     ListarPropuestas listarPropuestas(AccesoEvento acceso, PropuestaRepositorio propuestas) {
         return new ListarPropuestas(acceso, propuestas);
+    }
+
+    @Bean
+    RevisionesEnCurso revisionesEnCurso(AccesoEvento acceso, GenerarPropuestas generar) {
+        return new RevisionesEnCurso(acceso, generar);
     }
 
     @Bean
