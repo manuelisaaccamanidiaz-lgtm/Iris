@@ -40,6 +40,12 @@ public final class PromptPropuestas {
             8. "tipoSesion": CONFERENCIA, TALLER, PANEL, REUNION, LOGISTICA u OTRO (en una TAREA, "").
             9. "sala": solo si el documento la nombra; si no, "".
             10. Responde ÚNICAMENTE con el JSON pedido, sin texto antes ni después.
+            11. NO propongas nada que ya esté en la lista "YA EXISTE EN EL EVENTO" (aunque lo digas con otras \
+            palabras): esas tareas y sesiones ya están creadas. Busca lo que FALTA.
+            12. Lo que esté en "EL EQUIPO DESCARTÓ" no lo vuelvas a proponer, salvo que el documento le ponga \
+            un plazo obligatorio.
+            13. Si un plazo del documento ya pasó respecto a HOY, propónlo igual con esa fecha: el sistema lo \
+            marcará como urgente.
             """;
 
     private PromptPropuestas() {
@@ -61,7 +67,7 @@ public final class PromptPropuestas {
     }
 
     public static String contenido(Evento evento, String documento, List<TextoFragmento> fragmentos,
-                                   LocalDate hoy) {
+                                   LocalDate hoy, List<String> yaExisten, List<String> descartadas) {
         StringBuilder sb = new StringBuilder();
         sb.append("EVENTO: ").append(evento.nombre())
                 .append("\nFECHAS DEL EVENTO: del ").append(evento.fechaInicio()).append(" al ").append(evento.fechaFin());
@@ -69,13 +75,24 @@ public final class PromptPropuestas {
             sb.append("\nLUGAR: ").append(evento.lugar());
         }
         sb.append("\nHOY ES: ").append(hoy)
-                .append("\nDOCUMENTO: ").append(documento)
-                .append("\n\nFRAGMENTOS DEL DOCUMENTO:\n");
+                .append("\nDOCUMENTO: ").append(documento);
+        lista(sb, "YA EXISTE EN EL EVENTO", yaExisten);
+        lista(sb, "EL EQUIPO DESCARTÓ", descartadas);
+        sb.append("\n\nFRAGMENTOS DEL DOCUMENTO:\n");
         for (int i = 0; i < fragmentos.size(); i++) {
             TextoFragmento f = fragmentos.get(i);
             sb.append("\n[").append(i + 1).append("] (páginas ").append(f.paginaInicio()).append("-")
                     .append(f.paginaFin()).append(")\n").append(f.contenido()).append("\n");
         }
         return sb.toString();
+    }
+
+    /** Una lista corta de títulos (con tope, para no gastar tokens en eventos con cientos de tareas). */
+    private static void lista(StringBuilder sb, String titulo, List<String> elementos) {
+        if (elementos.isEmpty()) {
+            return;
+        }
+        sb.append("\n\n").append(titulo).append(":");
+        elementos.stream().limit(60).forEach(e -> sb.append("\n- ").append(e));
     }
 }

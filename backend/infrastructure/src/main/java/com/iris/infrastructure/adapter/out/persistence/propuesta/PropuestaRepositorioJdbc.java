@@ -99,6 +99,14 @@ class PropuestaRepositorioJdbc implements PropuestaRepositorio {
         return guardadas;
     }
 
+    @Override
+    public boolean recuperarDescartada(UUID propuestaId, UUID eventoId) {
+        return jdbc.update("""
+                UPDATE propuestas SET estado = 'PENDIENTE', decidida_en = NULL, decidida_por = NULL
+                WHERE id = :id AND evento_id = :evento AND estado = 'DESCARTADA'
+                """, new MapSqlParameterSource().addValue("id", propuestaId).addValue("evento", eventoId)) == 1;
+    }
+
     private static MapSqlParameterSource parametros(Propuesta p) {
         return new MapSqlParameterSource()
                 .addValue("evento", p.eventoId())

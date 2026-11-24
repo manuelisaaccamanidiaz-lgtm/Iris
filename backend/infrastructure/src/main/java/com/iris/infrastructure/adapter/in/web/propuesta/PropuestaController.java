@@ -21,6 +21,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.iris.application.propuesta.AceptarPropuesta;
 import com.iris.application.propuesta.DescartarPropuesta;
 import com.iris.application.propuesta.ListarPropuestas;
+import com.iris.application.propuesta.RecuperarPropuesta;
 import com.iris.application.propuesta.RevisarDocumento;
 import com.iris.domain.propuesta.EstadoPropuesta;
 import com.iris.domain.propuesta.Propuesta;
@@ -34,13 +35,15 @@ class PropuestaController {
     private final ListarPropuestas listar;
     private final AceptarPropuesta aceptar;
     private final DescartarPropuesta descartar;
+    private final RecuperarPropuesta recuperar;
 
     PropuestaController(RevisarDocumento revisar, ListarPropuestas listar, AceptarPropuesta aceptar,
-                        DescartarPropuesta descartar) {
+                        DescartarPropuesta descartar, RecuperarPropuesta recuperar) {
         this.revisar = revisar;
         this.listar = listar;
         this.aceptar = aceptar;
         this.descartar = descartar;
+        this.recuperar = recuperar;
     }
 
     /** "Iris, revisa este documento". Tarda unos segundos: la IA lee el documento completo (con tope). */
@@ -76,6 +79,13 @@ class PropuestaController {
     @ResponseStatus(HttpStatus.NO_CONTENT)
     void descartar(@AuthenticationPrincipal Jwt jwt, @PathVariable UUID eventoId, @PathVariable UUID propuestaId) {
         descartar.ejecutar(usuario(jwt), eventoId, propuestaId);
+    }
+
+    /** v2: una descartada vuelve a "Por revisar". */
+    @PostMapping("/propuestas/{propuestaId}/recuperar")
+    RespuestaPropuesta recuperar(@AuthenticationPrincipal Jwt jwt, @PathVariable UUID eventoId,
+                                 @PathVariable UUID propuestaId) {
+        return RespuestaPropuesta.de(recuperar.ejecutar(usuario(jwt), eventoId, propuestaId));
     }
 
     private static UUID usuario(Jwt jwt) {

@@ -45,6 +45,7 @@ import com.iris.application.propuesta.AceptarPropuesta;
 import com.iris.application.propuesta.DescartarPropuesta;
 import com.iris.application.propuesta.GenerarPropuestas;
 import com.iris.application.propuesta.ListarPropuestas;
+import com.iris.application.propuesta.RecuperarPropuesta;
 import com.iris.application.propuesta.RevisarDocumento;
 import com.iris.application.evento.CrearEvento;
 import com.iris.application.evento.ListarEventos;
@@ -286,8 +287,10 @@ public class CasosDeUsoConfig {
     @Bean
     GenerarPropuestas generarPropuestas(FragmentoRepositorio fragmentos, ContadorTokens contador,
                                         AnalizadorDocumentos analizador, PropuestaRepositorio propuestas,
-                                        DocumentoRepositorio documentos, EventoRepositorio eventos, Avisos avisos) {
-        return new GenerarPropuestas(fragmentos, contador, analizador, propuestas, documentos, eventos, avisos);
+                                        DocumentoRepositorio documentos, EventoRepositorio eventos, Avisos avisos,
+                                        TareaRepositorio tareas, SesionRepositorio sesiones) {
+        return new GenerarPropuestas(fragmentos, contador, analizador, propuestas, documentos, eventos, avisos,
+                tareas, sesiones);
     }
 
     @Bean
@@ -310,6 +313,11 @@ public class CasosDeUsoConfig {
     @Bean
     DescartarPropuesta descartarPropuesta(AccesoEvento acceso, PropuestaRepositorio propuestas) {
         return new DescartarPropuesta(acceso, propuestas);
+    }
+
+    @Bean
+    RecuperarPropuesta recuperarPropuesta(AccesoEvento acceso, PropuestaRepositorio propuestas) {
+        return new RecuperarPropuesta(acceso, propuestas);
     }
 
     // --- Día 4.5 ---
