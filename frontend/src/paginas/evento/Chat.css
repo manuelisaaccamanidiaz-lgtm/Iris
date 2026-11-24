@@ -1,28 +1,58 @@
-.chat { display: flex; flex-direction: column; gap: var(--space-3); }
+/* 6.4: chat + panel derecho. El panel solo va AL LADO cuando hay espacio de verdad (>= 1200 px) */
+.chat-con-panel { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--space-6); }
+@media (min-width: 1200px) {
+  .chat-con-panel { grid-template-columns: minmax(0, 1fr) 300px; align-items: start; }
+  .panel-chat { position: sticky; top: var(--space-8); }
+}
+
+.chat { display: flex; flex-direction: column; gap: var(--space-3); min-width: 0; }
+.chat-cabecera p { margin: var(--space-1) 0 0; }
 .chat-mensajes {
   display: flex; flex-direction: column; gap: var(--space-4);
-  min-height: 320px; max-height: calc(100vh - 360px); overflow-y: auto;
-  padding: var(--space-2) 0;
+  /* dvh: la altura REAL visible en el celular (100vh incluye la barra del navegador y se "corta") */
+  min-height: 280px; max-height: calc(100dvh - 330px); overflow-y: auto;
+  padding: var(--space-2) var(--space-1);
 }
 .chat-turno { display: flex; flex-direction: column; gap: var(--space-2); }
 .burbuja {
   margin: 0; padding: var(--space-3) var(--space-4);
-  border-radius: var(--radius-md); max-width: 80%;
+  border-radius: var(--radius-lg); max-width: 80%;
   white-space: pre-wrap; /* respeta los saltos de línea de la respuesta */
+  overflow-wrap: anywhere; /* una URL larga no rompe el ancho en el celular */
 }
-.burbuja-persona { align-self: flex-end; background: var(--surface-card); border: 1px solid var(--border); }
-.burbuja-iris { align-self: flex-start; background: var(--brand-soft); color: var(--brand-ink); }
+/* La "colita" de cada burbuja: la esquina del lado de quien habla queda menos redonda */
+.burbuja-persona { align-self: flex-end; background: var(--surface-card); border: 1px solid var(--border); border-bottom-right-radius: var(--radius-sm); }
+.burbuja-iris { align-self: flex-start; background: var(--brand-soft); color: var(--brand-ink); border-bottom-left-radius: var(--radius-sm); }
 .cursor { animation: parpadeo 1s steps(1) infinite; }
 @keyframes parpadeo { 50% { opacity: 0; } }
 .chat-aviso { margin-top: var(--space-2); }
+
+/* Las citas: un número en un círculo dentro del texto, y la misma marca en su fuente (así se emparejan) */
+.cita-chip {
+  display: inline-grid; place-items: center; min-width: 20px; height: 20px; padding: 0 5px;
+  margin: 0 2px; vertical-align: 1px;
+  border-radius: var(--radius-pill); background: var(--brand); color: var(--on-brand);
+  font: 700 11px/1 var(--font-sans);
+}
 .chat-fuentes {
-  list-style: none; margin: var(--space-3) 0 0; padding: var(--space-2) 0 0;
-  border-top: 1px solid var(--border); font-size: 13px; white-space: normal;
-  display: flex; flex-direction: column; gap: var(--space-1);
+  list-style: none; margin: var(--space-3) 0 0; padding: var(--space-3) 0 0;
+  border-top: 1px solid color-mix(in srgb, var(--brand-ink) 25%, transparent);
+  display: flex; flex-wrap: wrap; gap: var(--space-2); white-space: normal;
+}
+/* Fuente = etiqueta PUNTEADA (la idea del diseño original): se lee como "anexo", no como botón */
+.fuente-etiqueta {
+  display: inline-flex; align-items: center; gap: var(--space-1);
+  padding: 2px var(--space-3) 2px 3px; border-radius: var(--radius-pill);
+  border: 1px dashed var(--brand-ink); font-size: 12px; line-height: 18px;
 }
 .chat-bienvenida { display: flex; flex-direction: column; gap: var(--space-3); }
 .chat-sugerencias { display: flex; flex-wrap: wrap; gap: var(--space-2); }
 .chat-entrada { display: flex; gap: var(--space-3); align-items: flex-end; padding: var(--space-3); }
-.chat-entrada textarea { flex: 1; resize: vertical; }
+.chat-entrada textarea { flex: 1; resize: vertical; min-width: 0; }
 .chat-nota { margin: 0; text-align: center; }
+@media (max-width: 639px) {
+  .burbuja { max-width: 92%; }
+  .chat-mensajes { max-height: calc(100dvh - 300px); }
+  .chat-cabecera p { display: none; } /* en el celular, cada línea de pantalla cuenta */
+}
 @media (prefers-reduced-motion: reduce) { .cursor { animation: none; } }

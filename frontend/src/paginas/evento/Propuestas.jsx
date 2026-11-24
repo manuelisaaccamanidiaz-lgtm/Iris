@@ -62,7 +62,7 @@ export default function PropuestasProtegida() {
 const CADA_MS = 3000; // mientras Iris lee, preguntamos cada 3 s (igual que Documentos al indexar)
 
 function Propuestas() {
-  const { evento } = useOutletContext();
+  const { evento, alCambiarPendientes } = useOutletContext();
   // Si llegaste desde Documentos con "Ver propuestas", trae el documento para dejarlo elegido
   const documentoDeOrigen = useLocation().state?.documentoId;
   const confirmar = useConfirmar();
@@ -89,6 +89,12 @@ function Propuestas() {
     setPropuestas(null);
     cargar();
   }, [cargar]);
+
+  // El contador coral de la barra lateral, siempre al día: cada vez que cambia la lista de "Por revisar"
+  // (cargar, aceptar o descartar), se le avisa a EventoDetalle por el contexto
+  useEffect(() => {
+    if (estado === "PENDIENTE" && propuestas) alCambiarPendientes?.(propuestas.length);
+  }, [estado, propuestas, alCambiarPendientes]);
 
   /** Documentos listos + qué está leyendo Iris. Las dos preguntas van JUNTAS (Promise.all). */
   const consultarLectura = useCallback(async () => {
@@ -176,6 +182,7 @@ function Propuestas() {
       await api(`${base}/propuestas/${p.id}/recuperar`, { metodo: "POST" });
       setPropuestas((lista) => lista.filter((x) => x.id !== p.id));
       setAviso(`«${p.titulo}» volvió a Por revisar.`);
+      alCambiarPendientes?.((n) => n + 1); // estamos en "Descartadas": el contador sube uno
     } catch (e) {
       setError(mensajeLocal(e));
     } finally {
@@ -229,6 +236,7 @@ function Propuestas() {
 
   return (
     <div className="propuestas">
+      <h1>Propuestas de Iris</h1>
       <div className="propuestas-presentacion">
         <p className="burbuja-iris-grande">
           Leo los documentos del evento y te propongo tareas y sesiones, siempre con la frase exacta de donde las saqué.

@@ -1,9 +1,111 @@
-.evento { display: flex; flex-direction: column; gap: var(--space-4); }
-.evento-cabecera { display: flex; flex-direction: column; gap: var(--space-1); }
-.pestanas { display: flex; gap: var(--space-2); border-bottom: 1px solid var(--border); }
-.pestanas a {
-  padding: var(--space-2) var(--space-4);
-  color: var(--ink-muted); text-decoration: none; font-weight: 600;
-  border-bottom: 3px solid transparent; margin-bottom: -1px;
+/*
+ * 6.4 La página del evento con BARRA LATERAL.
+ * Cortes de pantalla (los mismos en toda la app):
+ *   >= 1200 px  escritorio ancho: lateral + contenido + panel derecho del chat
+ *   900-1199    escritorio / tablet horizontal: lateral + contenido (el panel del chat baja)
+ *   < 900       tablet / celular: la lateral se vuelve un menú que se desliza (☰)
+ *   < 640       celular: menos márgenes
+ */
+.evento-marco {
+  display: grid;
+  grid-template-columns: 256px minmax(0, 1fr); /* minmax(0, ...): el contenido puede encogerse sin desbordar */
+  min-height: 100vh;
 }
-.pestanas a.active { color: var(--ink); border-bottom-color: var(--brand); }
+
+/* --- La barra lateral: el degradado verde petróleo -> azul del diseño original --- */
+.lateral {
+  position: sticky; top: 0; height: 100vh; /* se queda quieta mientras la página baja */
+  display: flex; flex-direction: column; gap: var(--space-6);
+  padding: var(--space-4) var(--space-3);
+  background: var(--lateral);
+  color: var(--on-barra);
+}
+.lateral-arriba { display: flex; align-items: center; justify-content: space-between; padding: 0 var(--space-2); }
+.lateral-volver {
+  display: inline-flex; align-items: center; gap: var(--space-1);
+  color: var(--on-barra-suave); text-decoration: none; font-size: 13px; font-weight: 600;
+}
+.lateral-volver:hover { color: var(--on-barra); }
+.lateral-evento { display: flex; flex-direction: column; gap: var(--space-1); padding: 0 var(--space-2); }
+.lateral-evento .logo { font-size: 18px; color: var(--on-barra); }
+.lateral-nombre { color: var(--on-barra); font-size: 19px; line-height: 25px; overflow-wrap: anywhere; }
+.lateral-datos { margin: 0; color: var(--on-barra-suave); font-size: 13px; line-height: 19px; }
+
+.lateral-nav { display: flex; flex-direction: column; gap: 2px; }
+.lateral-nav a {
+  display: flex; align-items: center; gap: var(--space-3);
+  padding: var(--space-2) var(--space-3); border-radius: var(--radius-md);
+  color: var(--on-barra-suave); text-decoration: none; font-weight: 600; font-size: 14px;
+}
+.lateral-nav a:hover { color: var(--on-barra); background: rgba(255, 255, 255, 0.06); }
+/* NavLink pone "active" solo. La sección activa: fondo claro + una franja aguamarina (no solo color) */
+.lateral-nav a.active { color: var(--on-barra); background: rgba(255, 255, 255, 0.14); box-shadow: inset 3px 0 0 var(--aqua); }
+.lateral-nav a:focus-visible, .lateral-volver:focus-visible, .lateral-tema button:focus-visible {
+  outline: 2px solid var(--aqua); outline-offset: 2px;
+}
+.lateral-contador {
+  margin-left: auto; min-width: 22px; height: 22px; padding: 0 6px;
+  border-radius: var(--radius-pill); background: var(--coral); color: var(--on-coral);
+  font: 700 12px/22px var(--font-sans); text-align: center;
+}
+
+.lateral-pie { margin-top: auto; display: flex; flex-direction: column; gap: var(--space-3); }
+.lateral-tema {
+  display: grid; grid-template-columns: 1fr 1fr; padding: 3px;
+  border-radius: var(--radius-pill); background: rgba(0, 0, 0, 0.22);
+}
+.lateral-tema button {
+  border: 0; border-radius: var(--radius-pill); padding: var(--space-1) 0; cursor: pointer;
+  background: transparent; color: var(--on-barra-suave); font: 600 13px/20px var(--font-sans);
+}
+.lateral-tema button.activo { background: rgba(255, 255, 255, 0.18); color: var(--on-barra); }
+.lateral-usuario {
+  display: flex; align-items: center; gap: var(--space-2);
+  padding: var(--space-2); border-radius: var(--radius-md); background: rgba(255, 255, 255, 0.07);
+}
+.lateral-avatar {
+  flex: none; width: 34px; height: 34px; border-radius: 50%;
+  display: grid; place-items: center; background: var(--aqua); color: #04201c; font-weight: 700;
+}
+.lateral-usuario-texto { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+.lateral-email { font-size: 13px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.lateral-rol { font-size: 12px; color: var(--on-barra-suave); }
+
+/* Botones dentro de la lateral oscura: "fantasma", igual que en la barra superior */
+.lateral .boton, .evento-movil .boton { background: transparent; color: var(--on-barra); border-color: rgba(255, 255, 255, 0.28); }
+.lateral .boton:hover, .evento-movil .boton:hover { background: rgba(255, 255, 255, 0.1); }
+.lateral-salir { padding: var(--space-1) var(--space-2); font-size: 13px; }
+/* ...pero el panel de la campanita es una tarjeta clara: le devolvemos sus colores */
+.lateral .campanita-panel .boton, .evento-movil .campanita-panel .boton { background: var(--surface-card); color: var(--ink); border-color: var(--border); }
+.lateral .campanita-panel { left: 0; right: auto; } /* en la lateral se abre hacia la derecha */
+
+/* --- El contenido de la sección --- */
+.evento-contenido { min-width: 0; padding: var(--space-8); max-width: 1240px; width: 100%; }
+.evento-error { padding: var(--space-8); display: flex; flex-direction: column; gap: var(--space-3); align-items: flex-start; }
+
+/* --- < 900 px: la lateral se vuelve un menú que se desliza desde la izquierda --- */
+@media (max-width: 899px) {
+  /* auto 1fr: la barra corta mide lo que su contenido y el RESTO de la altura es del contenido.
+     Sin esto, el grid repartía la altura sobrante entre las dos filas y la barra crecía (bug de las capturas) */
+  .evento-marco { grid-template-columns: minmax(0, 1fr); grid-template-rows: auto 1fr; }
+  .evento-movil {
+    position: sticky; top: 0; z-index: 20;
+    display: flex; align-items: center; gap: var(--space-3);
+    padding: var(--space-2) var(--space-3);
+    background: var(--barra); color: var(--on-barra);
+  }
+  .evento-movil-menu { padding: var(--space-2); }
+  .evento-movil-nombre { flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-family: var(--font-display); }
+  .lateral {
+    position: fixed; left: 0; top: 0; z-index: 40;
+    width: min(300px, 86vw); overflow-y: auto;
+    transform: translateX(-100%); transition: transform 0.22s ease-out;
+  }
+  .menu-abierto .lateral { transform: none; box-shadow: 0 0 40px rgba(0, 0, 0, 0.35); }
+  .lateral-fondo { position: fixed; inset: 0; z-index: 30; background: rgba(15, 23, 22, 0.5); }
+  .evento-contenido { padding: var(--space-6) var(--space-4); }
+}
+@media (max-width: 639px) {
+  .evento-contenido { padding: var(--space-4) var(--space-3); }
+}
+@media (prefers-reduced-motion: reduce) { .lateral { transition: none; } }

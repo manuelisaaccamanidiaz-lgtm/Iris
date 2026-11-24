@@ -1,0 +1,43 @@
+/* 6.4 Panel derecho del chat. En pantallas de menos de 1200 px baja debajo del chat (ver Chat.css) */
+.panel-chat { display: flex; flex-direction: column; gap: var(--space-4); }
+.panel-bloque {
+  display: flex; flex-direction: column; gap: var(--space-2);
+  padding: var(--space-4); border-radius: var(--radius-lg);
+  background: var(--surface-card); border: 1px solid var(--border); box-shadow: var(--shadow-card);
+}
+.panel-titulo { font-size: 15px; line-height: 22px; }
+.panel-titulo .texto-suave { font-weight: 400; text-transform: none; }
+.panel-nada { margin: 0; }
+.panel-lista { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: var(--space-2); }
+
+.panel-atencion {
+  display: flex; align-items: center; justify-content: space-between; gap: var(--space-2);
+  padding: var(--space-2) var(--space-3); border-radius: var(--radius-md);
+  background: var(--surface); color: var(--ink); text-decoration: none; font-size: 14px;
+}
+.panel-atencion:hover { outline: 1px solid var(--brand); }
+.panel-atencion .chip, .panel-documento .chip { flex: none; white-space: nowrap; }
+.panel-atencion-titulo { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.panel-atencion-iris { justify-content: flex-start; background: var(--coral-soft); color: var(--coral-ink); font-weight: 600; }
+.panel-atencion-iris .lateral-contador { margin-left: 0; }
+
+/* Sesión de hoy: franja con el color de su tipo + la hora teñida (mismo lenguaje que la Agenda) */
+.panel-sesion {
+  display: flex; gap: var(--space-3); align-items: center;
+  padding: var(--space-2); border-radius: var(--radius-md);
+  border-left: 4px solid var(--tipo);
+  background: color-mix(in srgb, var(--tipo) 10%, var(--surface-card));
+}
+.panel-sesion-hora { font: 700 13px/18px var(--font-sans); min-width: 62px; }
+.panel-sesion-info { display: flex; flex-direction: column; min-width: 0; font-size: 14px; }
+
+.panel-documento { display: flex; align-items: center; justify-content: space-between; gap: var(--space-2); font-size: 14px; }
+.panel-documento-nombre { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+.panel-soltar {
+  display: block; text-align: center; cursor: pointer;
+  padding: var(--space-4) var(--space-3); border-radius: var(--radius-md);
+  border: 2px dashed var(--border); color: var(--ink-muted); font-size: 13px;
+}
+.panel-soltar:hover, .panel-soltar.arrastrando { border-color: var(--brand); color: var(--brand-ink); background: var(--brand-soft); }
+.panel-soltar:focus-within { outline: 2px solid var(--brand); outline-offset: 2px; }

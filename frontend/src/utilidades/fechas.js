@@ -18,6 +18,13 @@ export function fechaHora(instante) {
   return new Date(instante).toLocaleString(ES, { day: "numeric", month: "short", hour: "numeric", minute: "2-digit" });
 }
 
+/** "2026-12-09" -> "9 dic" (sin año: para espacios chicos, cuando el año se entiende) */
+export function fechaCorta(iso) {
+  if (!iso) return "";
+  const [a, m, d] = iso.split("-").map(Number);
+  return new Date(a, m - 1, d).toLocaleDateString(ES, { day: "numeric", month: "short" });
+}
+
 /** "hace 5 min", "hace 2 h", "hace 3 d" (para la campanita) */
 export function haceCuanto(instante) {
   const minutos = Math.round((Date.now() - new Date(instante).getTime()) / 60000);

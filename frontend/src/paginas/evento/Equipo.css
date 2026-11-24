@@ -7,3 +7,8 @@
 .miembro-info { flex: 1; display: flex; flex-direction: column; }
 .equipo-salir { margin-top: var(--space-4); }
 @media (max-width: 800px) { .equipo-invitar { grid-template-columns: 1fr; } }
+/* 6.4 Celular: todo en una columna, nada se sale de la pantalla */
+@media (max-width: 639px) {
+  .miembro { flex-wrap: wrap; }
+  .miembro-info { flex-basis: 100%; min-width: 0; overflow-wrap: anywhere; }
+}

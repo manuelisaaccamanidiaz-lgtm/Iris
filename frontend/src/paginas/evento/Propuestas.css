@@ -38,3 +38,9 @@
 .propuestas-leyendo::before { content: ""; display: inline-block; width: 8px; height: 8px; margin-right: var(--space-2); border-radius: 50%; background: currentColor; animation: latido 1.2s ease-in-out infinite; }
 @keyframes latido { 50% { opacity: 0.25; } }
 @media (prefers-reduced-motion: reduce) { .propuestas-leyendo::before { animation: none; } }
+/* 6.4 Celular: todo en una columna, nada se sale de la pantalla */
+@media (max-width: 639px) {
+  .propuesta-ajustes { grid-template-columns: 1fr; }
+  .propuesta-acciones .boton { flex: 1; justify-content: center; }
+  .burbuja-iris-grande { padding: var(--space-3) var(--space-4); font-size: 15px; }
+}
