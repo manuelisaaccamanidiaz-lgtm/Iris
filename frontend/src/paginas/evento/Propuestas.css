@@ -1,0 +1,31 @@
+.propuestas { display: flex; flex-direction: column; gap: var(--space-4); }
+.propuestas-presentacion { display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-4); align-items: stretch; }
+/* La voz de Iris: su burbuja, más grande que la del chat */
+.burbuja-iris-grande {
+  margin: 0; padding: var(--space-4) var(--space-6);
+  border-radius: var(--radius-lg); background: var(--brand-soft); color: var(--brand-ink);
+  font-size: 16px; line-height: 26px; display: flex; flex-direction: column; justify-content: center;
+}
+.propuestas-revisar { display: flex; flex-direction: column; gap: var(--space-3); }
+.propuestas-revisar .boton { align-self: flex-start; }
+.propuestas-revisar p { margin: 0; }
+.propuestas-aviso { align-self: flex-start; border-radius: var(--radius-md); padding: var(--space-2) var(--space-3); }
+.propuestas-vacio { text-align: center; padding: var(--space-8); }
+.propuestas-grupo { display: flex; flex-direction: column; gap: var(--space-3); }
+.propuestas-documento { font-size: 16px; }
+.propuesta { display: flex; flex-direction: column; gap: var(--space-2); }
+.propuesta-cabecera { display: flex; align-items: center; gap: var(--space-2); flex-wrap: wrap; }
+.propuesta-cabecera h3 { font-size: 17px; line-height: 24px; }
+.propuesta-descripcion, .propuesta-cuando { margin: 0; }
+/* La cita textual: el corazón de "Iris siempre cita sus fuentes" */
+.propuesta-cita {
+  margin: var(--space-1) 0 0; padding: var(--space-3) var(--space-4);
+  border-radius: var(--radius-md); background: var(--surface); border: 1px solid var(--border);
+}
+.propuesta-cita p { margin: 0 0 var(--space-1); font-style: italic; }
+.propuesta-cita cite { font-style: normal; font-size: 13px; color: var(--ink-muted); }
+.propuesta-acciones { display: flex; justify-content: flex-end; gap: var(--space-2); flex-wrap: wrap; }
+.propuesta-ajustes { display: grid; grid-template-columns: repeat(4, 1fr); gap: var(--space-3); padding-top: var(--space-2); border-top: 1px solid var(--border); }
+.propuesta-ancho { grid-column: 1 / -1; }
+.propuesta-enlace { align-self: flex-end; font-weight: 600; }
+@media (max-width: 900px) { .propuestas-presentacion { grid-template-columns: 1fr; } .propuesta-ajustes { grid-template-columns: 1fr 1fr; } }

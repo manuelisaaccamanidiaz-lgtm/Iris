@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { useOutletContext } from "react-router";
+import { Link, useOutletContext } from "react-router";
 import { api } from "../../api/cliente.js";
 import { useConfirmar } from "../../componentes/Confirmacion.jsx";
 import "./Documentos.css";
@@ -112,6 +112,7 @@ export default function Documentos() {
                 {d.estado === "ERROR" && d.errorMensaje && <span className="texto-error">{d.errorMensaje}</span>}
               </div>
               <span className={`chip ${estado.clase}`}>{estado.texto}</span>
+              {puedeEditar && d.estado === "INDEXADO" && <Link to="../propuestas">Ver propuestas de Iris</Link>}
               {puedeEditar && (
                 <button className="boton boton-peligro" onClick={() => borrar(d)}>
                   Borrar

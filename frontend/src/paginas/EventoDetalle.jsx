@@ -44,6 +44,8 @@ export default function EventoDetalle() {
         <NavLink to="documentos">Documentos</NavLink>
         <NavLink to="agenda">Agenda</NavLink>
         <NavLink to="tareas">Tareas</NavLink>
+        {/* Solo editores y propietarios ven las propuestas (el backend responde 403 a un lector) */}
+        {puedeEditar && <NavLink to="propuestas">Propuestas de Iris</NavLink>}
         <NavLink to="equipo">Equipo</NavLink>
       </nav>
       <Outlet context={{ evento, puedeEditar }} />

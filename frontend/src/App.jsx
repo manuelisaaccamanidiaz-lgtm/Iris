@@ -9,6 +9,7 @@ import Agenda from "./paginas/evento/Agenda.jsx";
 import Chat from "./paginas/evento/Chat.jsx";
 import Documentos from "./paginas/evento/Documentos.jsx";
 import Equipo from "./paginas/evento/Equipo.jsx";
+import Propuestas from "./paginas/evento/Propuestas.jsx";
 import Tareas from "./paginas/evento/Tareas.jsx";
 import EventoDetalle from "./paginas/EventoDetalle.jsx";
 import Eventos from "./paginas/Eventos.jsx";
@@ -31,6 +32,7 @@ export default function App() {
           <Route path="documentos" element={<Documentos />} />
           <Route path="agenda" element={<Agenda />} />
           <Route path="tareas" element={<Tareas />} />
+          <Route path="propuestas" element={<Propuestas />} />
           <Route path="equipo" element={<Equipo />} />
         </Route>
       </Route>
