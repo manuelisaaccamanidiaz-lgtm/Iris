@@ -8,7 +8,7 @@
  * Solo EDITORES y PROPIETARIOS (decisión de Isaac): un lector ni siquiera ve la pestaña.
  */
 import { useCallback, useEffect, useState } from "react";
-import { Link, useOutletContext } from "react-router";
+import { Link, Navigate, useOutletContext } from "react-router";
 import { api } from "../../api/cliente.js";
 import { useConfirmar } from "../../componentes/Confirmacion.jsx";
 import { fecha, hora } from "../../utilidades/fechas.js";
@@ -34,7 +34,17 @@ function porDocumento(propuestas) {
 
 const paginas = (f) => (f.paginaInicio === f.paginaFin ? `pág. ${f.paginaInicio}` : `págs. ${f.paginaInicio}-${f.paginaFin}`);
 
-export default function Propuestas() {
+/**
+ * Guardia de la ruta: un LECTOR que escribe /propuestas en la URL (o hereda la URL de otra sesión)
+ * vuelve al chat SIN pedir nada al backend. El backend igual respondería 403: esto es la "comodidad";
+ * la "seguridad" sigue en el backend.
+ */
+export default function PropuestasProtegida() {
+  const { puedeEditar } = useOutletContext();
+  return puedeEditar ? <Propuestas /> : <Navigate to="../chat" replace />;
+}
+
+function Propuestas() {
   const { evento } = useOutletContext();
   const confirmar = useConfirmar();
   const base = `/api/eventos/${evento.id}`;
@@ -109,6 +119,21 @@ export default function Propuestas() {
     }
   }
 
+  /** v2: una descartada vuelve a "Por revisar". */
+  async function recuperar(p) {
+    limpiar();
+    setOcupada(p.id);
+    try {
+      await api(`${base}/propuestas/${p.id}/recuperar`, { metodo: "POST" });
+      setPropuestas((lista) => lista.filter((x) => x.id !== p.id));
+      setAviso(`«${p.titulo}» volvió a Por revisar.`);
+    } catch (e) {
+      setError(e.message);
+    } finally {
+      setOcupada(null);
+    }
+  }
+
   async function descartar(p) {
     const ok = await confirmar({
       titulo: `¿Descartar «${p.titulo}»?`,
@@ -132,6 +157,7 @@ export default function Propuestas() {
     setAjustando({
       id: p.id,
       titulo: p.titulo,
+      descripcion: p.descripcion ?? "",
       fecha: p.fecha ?? "",
       horaInicio: p.horaInicio?.slice(0, 5) ?? "",
       horaFin: p.horaFin?.slice(0, 5) ?? "",
@@ -144,7 +170,7 @@ export default function Propuestas() {
     e.preventDefault();
     const a = ajustando;
     // Solo mandamos lo que tiene valor: el backend deja como estaba lo que llegue en null
-    const ajustes = { titulo: a.titulo || null, fecha: a.fecha || null };
+    const ajustes = { titulo: a.titulo || null, descripcion: a.descripcion || null, fecha: a.fecha || null };
     if (p.tipo === "SESION") Object.assign(ajustes, { horaInicio: a.horaInicio || null, horaFin: a.horaFin || null, sala: a.sala || null });
     else ajustes.responsableId = a.responsableId || null;
     aceptar(p, ajustes);
@@ -228,7 +254,7 @@ export default function Propuestas() {
 
                 {estado === "PENDIENTE" && !enAjuste && (
                   <div className="propuesta-acciones">
-                    <button className="boton" onClick={() => descartar(p)} disabled={ocupada === p.id}>Descartar</button>
+                    <button className="boton boton-texto-coral" onClick={() => descartar(p)} disabled={ocupada === p.id}>Descartar</button>
                     <button className="boton" onClick={() => abrirAjustes(p)} disabled={ocupada === p.id}>Ajustar y aceptar</button>
                     <button className="boton boton-coral" onClick={() => aceptar(p)} disabled={ocupada === p.id}>
                       {ocupada === p.id ? "Aceptando…" : "Aceptar"}
@@ -239,6 +265,7 @@ export default function Propuestas() {
                 {enAjuste && (
                   <form className="propuesta-ajustes" onSubmit={(e) => enviarAjustes(e, p)}>
                     <label className="etiqueta propuesta-ancho">Título<input className="campo" required value={ajustando.titulo} onChange={cambiar("titulo")} /></label>
+                    <label className="etiqueta propuesta-ancho">Detalle<textarea className="campo" rows={2} value={ajustando.descripcion} onChange={cambiar("descripcion")} /></label>
                     <label className="etiqueta">{esSesion ? "Día" : "Fecha límite"}
                       <input className="campo" type="date" required={esSesion} value={ajustando.fecha} onChange={cambiar("fecha")}
                         min={esSesion ? evento.fechaInicio : undefined} max={esSesion ? evento.fechaFin : undefined} />
@@ -264,6 +291,14 @@ export default function Propuestas() {
                       </button>
                     </div>
                   </form>
+                )}
+
+                {estado === "DESCARTADA" && (
+                  <div className="propuesta-acciones">
+                    <button className="boton" onClick={() => recuperar(p)} disabled={ocupada === p.id}>
+                      Recuperar
+                    </button>
+                  </div>
                 )}
 
                 {estado === "ACEPTADA" && (

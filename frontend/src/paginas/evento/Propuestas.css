@@ -29,3 +29,6 @@
 .propuesta-ancho { grid-column: 1 / -1; }
 .propuesta-enlace { align-self: flex-end; font-weight: 600; }
 @media (max-width: 900px) { .propuestas-presentacion { grid-template-columns: 1fr; } .propuesta-ajustes { grid-template-columns: 1fr 1fr; } }
+/* Descartar: secundario, con el texto en coral (decisión de Isaac): se nota, pero no compite con Aceptar */
+.boton-texto-coral { color: var(--coral-ink); }
+.boton-texto-coral:hover { border-color: var(--coral); }
