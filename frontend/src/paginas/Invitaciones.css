@@ -1,0 +1,6 @@
+.invitaciones { display: flex; flex-direction: column; gap: var(--space-4); max-width: 760px; }
+.invitacion { display: flex; align-items: center; justify-content: space-between; gap: var(--space-4); }
+.invitacion-info { display: flex; flex-direction: column; gap: var(--space-1); }
+.invitacion-info p { margin: 0; }
+.invitacion-acciones { display: flex; gap: var(--space-2); }
+.invitaciones-vacio { text-align: center; padding: var(--space-8); }

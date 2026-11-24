@@ -14,8 +14,10 @@ import org.springframework.ai.openai.OpenAiChatModel;
 import org.springframework.ai.openai.OpenAiChatOptions;
 import org.springframework.stereotype.Component;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.iris.application.port.out.AnalizadorDocumentos;
+import com.iris.application.port.out.IaNoDisponibleException;
 import com.iris.infrastructure.config.ChatPropiedades;
 
 /**
@@ -39,7 +41,15 @@ class AnalizadorDocumentosGroq implements AnalizadorDocumentos {
 
     private final ChatModel chat;
     private final ChatPropiedades propiedades;
+    /** Para PEDIR: genera el esquema estricto (todos los campos "required") que le mandamos a Groq. */
     private final BeanOutputConverter<RespuestaIA> conversor = new BeanOutputConverter<>(RespuestaIA.class);
+    /**
+     * Para LEER: los mismos campos, pero ninguno obligatorio. El bug del 500: el JSON Schema falló, el
+     * respaldo (JSON Object Mode) solo garantiza JSON VÁLIDO, no la forma, y la IA omitió "horaInicio".
+     * Con "required" Jackson rechazaba la respuesta ENTERA por un campo de una sola propuesta.
+     * Ahora un campo que falta llega como null y el validador decide (ya sabe qué hacer con nulls).
+     */
+    private final BeanOutputConverter<RespuestaFlexible> lector = new BeanOutputConverter<>(RespuestaFlexible.class);
 
     AnalizadorDocumentosGroq(ChatModel chat, ChatPropiedades propiedades) {
         this.chat = chat;
@@ -55,13 +65,26 @@ class AnalizadorDocumentosGroq implements AnalizadorDocumentos {
             json = llamar(sistema, contenido, OpenAiChatModel.ResponseFormat.Type.JSON_SCHEMA);
         } catch (RuntimeException e) {
             log.warn("Groq rechazó JSON Schema ({}); reintento con JSON Object Mode", e.getMessage());
-            json = llamar(sistema, contenido, OpenAiChatModel.ResponseFormat.Type.JSON_OBJECT);
+            try {
+                json = llamar(sistema, contenido, OpenAiChatModel.ResponseFormat.Type.JSON_OBJECT);
+            } catch (RuntimeException otra) {
+                // Fallaron los DOS intentos: casi siempre es el límite de tokens por minuto de Groq (429)
+                log.error("Groq no respondió a las propuestas", otra);
+                throw new IaNoDisponibleException("Groq no respondió: " + otra.getMessage(), otra);
+            }
         }
-        RespuestaIA respuesta = conversor.convert(json);
+        RespuestaFlexible respuesta;
+        try {
+            respuesta = lector.convert(json);
+        } catch (RuntimeException e) {
+            // Ni siquiera es el JSON que esperábamos: es un fallo de la IA, no un bug nuestro
+            log.error("La IA respondió algo que no se pudo leer como propuestas", e);
+            throw new IaNoDisponibleException("Respuesta ilegible de la IA", e);
+        }
         if (respuesta == null || respuesta.propuestas() == null) {
             return List.of();
         }
-        return respuesta.propuestas().stream().map(Item::aPuerto).toList();
+        return respuesta.propuestas().stream().filter(java.util.Objects::nonNull).map(ItemFlexible::aPuerto).toList();
     }
 
     private String llamar(String sistema, String contenido, OpenAiChatModel.ResponseFormat.Type tipo) {
@@ -103,12 +126,44 @@ class AnalizadorDocumentosGroq implements AnalizadorDocumentos {
             @JsonProperty(required = true, value = "horaFin") String horaFin,
             @JsonProperty(required = true, value = "sala") String sala,
             @JsonProperty(required = true, value = "tipoSesion") String tipoSesion,
-            @JsonProperty(required = true, value = "fragmento") int fragmento,
+            // TEXTO y no int: un int genera "format": "int32" en el esquema, y Groq lo rechaza (400:
+            // "'format' is only allowed when type is 'string'"). Por eso el modo estricto NUNCA funcionó
+            // y siempre caíamos al respaldo sin forma garantizada. Lo descubrimos leyendo el WARN del log.
+            @JsonProperty(required = true, value = "fragmento") String fragmento,
             @JsonProperty(required = true, value = "cita") String cita) {
 
         PropuestaIA aPuerto() {
             return new PropuestaIA(tipo, titulo, descripcion, fecha, horaInicio, horaFin, sala, tipoSesion,
-                    fragmento, cita);
+                    numero(fragmento), cita);
+        }
+    }
+
+    /** "3", " 3 " o "[3]" -> 3. Cualquier otra cosa -> 0 ("no existe": el validador la descarta). */
+    static int numero(String texto) {
+        if (texto == null) {
+            return 0;
+        }
+        String digitos = texto.replaceAll("[^0-9]", "");
+        try {
+            return digitos.isEmpty() ? 0 : Integer.parseInt(digitos);
+        } catch (NumberFormatException e) {
+            return 0; // un número absurdamente largo
+        }
+    }
+
+    // --- La forma para LEER: igual, sin "required" y tolerante a campos de más que invente la IA
+
+    @JsonIgnoreProperties(ignoreUnknown = true)
+    record RespuestaFlexible(List<ItemFlexible> propuestas) {
+    }
+
+    @JsonIgnoreProperties(ignoreUnknown = true)
+    record ItemFlexible(String tipo, String titulo, String descripcion, String fecha, String horaInicio,
+                        String horaFin, String sala, String tipoSesion, String fragmento, String cita) {
+
+        PropuestaIA aPuerto() {
+            return new PropuestaIA(tipo, titulo, descripcion, fecha, horaInicio, horaFin, sala, tipoSesion,
+                    numero(fragmento), cita);
         }
     }
 }

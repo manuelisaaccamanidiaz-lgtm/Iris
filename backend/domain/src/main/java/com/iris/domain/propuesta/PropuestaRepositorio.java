@@ -23,4 +23,11 @@ public interface PropuestaRepositorio {
      * (decisión de Isaac: al volver a revisar, se reemplazan; las aceptadas y descartadas se quedan).
      */
     List<Propuesta> reemplazarPendientesDelDocumento(UUID documentoId, List<Propuesta> nuevas);
+
+    /**
+     * v2 (decisión de Isaac): una DESCARTADA vuelve a PENDIENTE. Una sola sentencia condicional
+     * (WHERE estado = 'DESCARTADA'), así no se puede "recuperar" una aceptada ni recuperar dos veces.
+     * @return false si no estaba descartada (o no existe en ese evento)
+     */
+    boolean recuperarDescartada(UUID propuestaId, UUID eventoId);
 }

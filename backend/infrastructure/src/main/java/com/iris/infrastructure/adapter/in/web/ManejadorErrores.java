@@ -17,6 +17,7 @@ import org.springframework.web.method.annotation.MethodArgumentTypeMismatchExcep
 import org.springframework.web.multipart.MaxUploadSizeExceededException;
 
 import com.iris.application.auth.CredencialesInvalidasException;
+import com.iris.application.port.out.IaNoDisponibleException;
 import com.iris.domain.compartido.AccesoDenegadoException;
 import com.iris.domain.compartido.RecursoNoEncontradoException;
 import com.iris.domain.compartido.ConflictoException;
@@ -91,6 +92,13 @@ class ManejadorErrores {
     }
 
     /** Última red: lo que nadie más atrapó. Nunca enviamos detalles internos al cliente, pero SÍ al log */
+    /** 503: no es culpa de nadie, es "vuelve en un rato" (el detalle técnico ya quedó en el log). */
+    @ExceptionHandler(IaNoDisponibleException.class)
+    ProblemDetail iaNoDisponible(IaNoDisponibleException e) {
+        return problema(HttpStatus.SERVICE_UNAVAILABLE, "Iris está ocupada",
+                "El servicio de IA falló o respondió algo que no pude leer (puede ser el límite de uso por minuto). Intenta de nuevo en un minuto.");
+    }
+
     @ExceptionHandler(Exception.class)
     ProblemDetail errorInesperado(Exception e) {
         // Los errores propios de Spring MVC (ruta inexistente 404, método no permitido 405...)

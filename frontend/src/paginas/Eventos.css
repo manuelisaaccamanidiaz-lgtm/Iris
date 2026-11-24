@@ -1,0 +1,9 @@
+.eventos { display: flex; flex-direction: column; gap: var(--space-6); }
+.eventos-cabecera { display: flex; align-items: flex-end; justify-content: space-between; gap: var(--space-4); }
+.eventos-formulario { display: grid; grid-template-columns: 2fr 2fr 1fr 1fr auto; align-items: end; }
+.eventos-lista { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: var(--space-4); }
+.evento-tarjeta { display: flex; flex-direction: column; gap: var(--space-2); color: inherit; text-decoration: none; }
+.evento-tarjeta:hover { border-color: var(--brand); }
+.eventos-vacio { text-align: center; padding: var(--space-8); }
+@media (max-width: 900px) { .eventos-formulario { grid-template-columns: 1fr; } }
+.eventos-cruce { grid-column: 1 / -1; border-radius: var(--radius-md); padding: var(--space-2) var(--space-3); }

@@ -1,0 +1,19 @@
+.tareas { display: flex; flex-direction: column; gap: var(--space-4); }
+.tareas > p { margin: 0; }
+.tareas-barra { display: flex; justify-content: space-between; align-items: center; gap: var(--space-3); flex-wrap: wrap; }
+.tareas-filtros { display: flex; align-items: center; gap: var(--space-2); flex-wrap: wrap; }
+.filtro-activo { background: var(--brand-soft); color: var(--brand-ink); border-color: var(--brand); }
+.tareas-mias { display: flex; align-items: center; gap: var(--space-1); margin-left: var(--space-2); font-size: 14px; }
+.tareas-formulario { display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-3); }
+.tareas-ancho { grid-column: 1 / -1; }
+.tareas-botones { display: flex; justify-content: flex-end; gap: var(--space-2); }
+.tareas-vacia { text-align: center; padding: var(--space-8); }
+.tareas-lista { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: var(--space-2); }
+.tarea { display: flex; align-items: flex-start; gap: var(--space-3); }
+.tarea-casilla { width: 20px; height: 20px; margin-top: 2px; accent-color: var(--brand); cursor: pointer; }
+.tarea-info { flex: 1; display: flex; flex-direction: column; gap: 2px; }
+.tarea-titulo { display: flex; align-items: center; gap: var(--space-2); flex-wrap: wrap; }
+.tarea-descripcion { font-size: 14px; }
+.tarea-acciones { display: flex; gap: var(--space-2); }
+/* Hecha: tachada y más suave, pero legible */
+.tarea-hecha .tarea-titulo strong { text-decoration: line-through; color: var(--ink-muted); }

@@ -1,0 +1,9 @@
+.equipo { display: flex; flex-direction: column; gap: var(--space-4); }
+.equipo-invitar { display: grid; grid-template-columns: 2fr 1fr auto; gap: var(--space-3); align-items: end; }
+.equipo-ayuda { grid-column: 1 / -1; margin: 0; }
+.equipo-aviso { align-self: flex-start; border-radius: var(--radius-md); padding: var(--space-2) var(--space-3); }
+.equipo-lista { list-style: none; margin: var(--space-3) 0 0; padding: 0; display: flex; flex-direction: column; }
+.miembro { display: flex; align-items: center; gap: var(--space-3); padding: var(--space-3) 0; border-top: 1px solid var(--border); }
+.miembro-info { flex: 1; display: flex; flex-direction: column; }
+.equipo-salir { margin-top: var(--space-4); }
+@media (max-width: 800px) { .equipo-invitar { grid-template-columns: 1fr; } }

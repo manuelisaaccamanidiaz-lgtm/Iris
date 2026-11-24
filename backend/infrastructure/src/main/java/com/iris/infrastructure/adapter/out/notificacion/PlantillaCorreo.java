@@ -56,15 +56,15 @@ final class PlantillaCorreo {
         String mensaje = HtmlUtils.htmlEscape(a.mensaje());
         // Estilos "en línea" (style="..."): muchos programas de correo ignoran las etiquetas <style>
         String html = """
-                <div style="font-family:Arial,Helvetica,sans-serif;background:#f4f4f7;padding:24px">
+                <div style="font-family:Arial,Helvetica,sans-serif;background:#F5FAF9;padding:24px">
                   <div style="max-width:520px;margin:0 auto;background:#ffffff;border-radius:12px;overflow:hidden">
-                    <div style="background:#5b3cc4;color:#ffffff;padding:18px 24px;font-size:20px;font-weight:bold">
+                    <div style="background:#0A7D70;color:#ffffff;padding:18px 24px;font-size:20px;font-weight:bold">
                       Iris
                     </div>
-                    <div style="padding:24px;color:#222222">
+                    <div style="padding:24px;color:#1E293B">
                       <h2 style="margin:0 0 12px 0;font-size:18px">%s</h2>
                       <p style="margin:0 0 20px 0;line-height:1.5">%s</p>
-                      <a href="%s" style="display:inline-block;background:#5b3cc4;color:#ffffff;
+                      <a href="%s" style="display:inline-block;background:#0A7D70;color:#ffffff;
                          text-decoration:none;padding:12px 20px;border-radius:8px;font-weight:bold">%s</a>
                       <p style="margin:20px 0 0 0;font-size:12px;color:#777777">
                         Si el botón no funciona, copia este enlace en tu navegador: %s

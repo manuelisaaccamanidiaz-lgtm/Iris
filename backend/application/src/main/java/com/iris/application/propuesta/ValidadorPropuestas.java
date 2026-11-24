@@ -6,11 +6,15 @@ import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 import com.iris.application.port.out.AnalizadorDocumentos.PropuestaIA;
 import com.iris.domain.agenda.TipoSesion;
@@ -21,92 +25,210 @@ import com.iris.domain.propuesta.Propuesta;
 import com.iris.domain.propuesta.TipoPropuesta;
 
 /**
- * El "control de calidad" de lo que dijo la IA. Nunca confiamos en un modelo de lenguaje a ciegas:
+ * El "control de calidad" de lo que dijo la IA (versión 2, Día 6). Nunca confiamos en un modelo
+ * de lenguaje a ciegas:
  * <ol>
  *   <li>el fragmento citado debe EXISTIR;</li>
- *   <li>la cita debe aparecer DE VERDAD en ese fragmento (anti-alucinación: si la IA se inventó
- *       la frase, la propuesta se descarta);</li>
- *   <li>las fechas y horas deben poder leerse;</li>
- *   <li>una SESION sin horas o fuera de las fechas del evento se convierte en TAREA (no se pierde la
- *       información, pero tampoco entra a la agenda algo imposible);</li>
- *   <li>sin repetidos.</li>
+ *   <li>la cita debe salir DE VERDAD de ese fragmento. v2: la IA a veces cambia una palabra o un signo
+ *       al copiar, y la v1 la descartaba por eso. Ahora buscamos en el fragmento la ORACIÓN REAL que más
+ *       se parece a lo que citó la IA: si comparten al menos el 60 % de las palabras, la propuesta se queda
+ *       con esa oración real (texto del documento, no de la IA). Si no se parece a nada, se descarta;</li>
+ *   <li>v2: nada repetido con lo que YA existe (tareas, sesiones, propuestas aceptadas) ni dentro del lote;</li>
+ *   <li>v2 (decisión de Isaac): lo DESCARTADO no se repite... salvo que el documento le ponga un plazo:
+ *       entonces vuelve, con una nota que lo explica;</li>
+ *   <li>v2 (decisión de Isaac): un plazo que YA PASÓ se propone para HOY, con una nota;</li>
+ *   <li>una SESION sin horas o fuera de las fechas del evento se convierte en TAREA.</li>
  * </ol>
  * Clase sin estado y sin dependencias: se prueba fácil (ValidadorPropuestasTest).
  */
 public final class ValidadorPropuestas {
 
     private static final DateTimeFormatter HORA = DateTimeFormatter.ofPattern("H:mm");
+    private static final DateTimeFormatter FECHA_TEXTO = DateTimeFormatter.ofPattern("d 'de' MMMM", Locale.of("es"));
+    private static final double PARECIDO_MINIMO = 0.6;
+    private static final int MAX_CITA = 300;
 
     private ValidadorPropuestas() {
     }
 
-    public record Resultado(List<Propuesta> validas, int descartadas) {
+    /**
+     * Lo que ya sabe el evento, para no repetir.
+     * @param existentes títulos de tareas, sesiones y propuestas aceptadas o pendientes de OTROS documentos
+     * @param descartados títulos de propuestas descartadas
+     */
+    public record Contexto(LocalDate hoy, Set<String> existentes, Set<String> descartados) {
+
+        public static Contexto de(LocalDate hoy, List<String> existentes, List<String> descartados) {
+            return new Contexto(hoy, normalizados(existentes), normalizados(descartados));
+        }
+
+        private static Set<String> normalizados(List<String> titulos) {
+            return titulos.stream().map(ValidadorPropuestas::normalizar).collect(Collectors.toSet());
+        }
+    }
+
+    /**
+     * @param motivos por qué se descartó cada una ("ya existe": 3, "cita inventada": 1...). Va al log:
+     *                "descartó 6" no ayuda a nadie; "6 porque ya existían" sí (era lo que pasaba).
+     */
+    public record Resultado(List<Propuesta> validas, Map<String, Integer> motivos) {
+
+        public int descartadas() {
+            return motivos.values().stream().mapToInt(Integer::intValue).sum();
+        }
     }
 
     public static Resultado validar(List<PropuestaIA> ias, List<TextoFragmento> fragmentos, UUID documentoId,
-                                    String documentoNombre, Evento evento) {
+                                    String documentoNombre, Evento evento, Contexto contexto) {
         List<Propuesta> validas = new ArrayList<>();
         Set<String> vistas = new HashSet<>();
-        int descartadas = 0;
+        Map<String, Integer> motivos = new LinkedHashMap<>();
         for (PropuestaIA ia : ias == null ? List.<PropuestaIA>of() : ias) {
-            Propuesta p = convertir(ia, fragmentos, documentoId, documentoNombre, evento);
-            if (p == null || !vistas.add(p.tipo() + "|" + normalizar(p.titulo()))) {
-                descartadas++;
+            Propuesta p = convertir(ia, fragmentos, documentoId, documentoNombre, evento, contexto, motivos);
+            if (p == null) {
+                continue; // convertir() ya anotó el motivo
+            }
+            if (!vistas.add(normalizar(p.titulo()))) {
+                descartar(motivos, "repetida en el mismo lote");
                 continue;
             }
             validas.add(p);
         }
-        return new Resultado(validas, descartadas);
+        return new Resultado(validas, motivos);
+    }
+
+    /** Primero el fragmento que indicó la IA (si existe), luego todos los demás en orden. */
+    private static List<TextoFragmento> enOrdenDeBusqueda(List<TextoFragmento> fragmentos, int indicado) {
+        List<TextoFragmento> orden = new ArrayList<>(fragmentos.size());
+        if (indicado >= 1 && indicado <= fragmentos.size()) {
+            orden.add(fragmentos.get(indicado - 1));
+        }
+        for (int i = 0; i < fragmentos.size(); i++) {
+            if (i != indicado - 1) {
+                orden.add(fragmentos.get(i));
+            }
+        }
+        return orden;
+    }
+
+    /** Anota el motivo y devuelve null (= descartada), para escribir {@code return descartar(...)}. */
+    private static Propuesta descartar(Map<String, Integer> motivos, String motivo) {
+        motivos.merge(motivo, 1, Integer::sum);
+        return null;
     }
 
     /** null = descartada. */
     static Propuesta convertir(PropuestaIA ia, List<TextoFragmento> fragmentos, UUID documentoId,
-                               String documentoNombre, Evento evento) {
-        if (ia == null || ia.fragmento() < 1 || ia.fragmento() > fragmentos.size()) {
-            return null; // cita un fragmento que no existe
+                               String documentoNombre, Evento evento, Contexto contexto,
+                               Map<String, Integer> motivos) {
+        if (ia == null || ia.titulo() == null || ia.titulo().isBlank()) {
+            return descartar(motivos, "sin título");
         }
-        TextoFragmento fuente = fragmentos.get(ia.fragmento() - 1);
-        if (!citaEsTextual(ia.cita(), fuente.contenido())) {
-            return null; // la frase no está en el documento: la IA la inventó o la parafraseó
+        // v3: el NÚMERO de fragmento es una pista de la IA; la PRUEBA es la cita. Si la IA se equivocó de
+        // número (a veces escribe la página, que va al lado en el prompt), buscamos la cita en los demás.
+        // Se sigue exigiendo texto REAL del documento: solo dejamos de botar propuestas por un número mal puesto.
+        TextoFragmento fuente = null;
+        String citaReal = null;
+        for (TextoFragmento f : enOrdenDeBusqueda(fragmentos, ia.fragmento())) {
+            citaReal = citaVerificada(ia.cita(), f.contenido());
+            if (citaReal != null) {
+                fuente = f; // las páginas salen del fragmento donde de verdad está la cita
+                break;
+            }
         }
+        if (citaReal == null) {
+            return descartar(motivos, "cita que no está en el documento"); // no se parece a nada del texto
+        }
+        String titulo = normalizar(ia.titulo());
+        if (contexto.existentes().contains(titulo)) {
+            return descartar(motivos, "ya existe en el evento"); // tarea, sesión o propuesta
+        }
+
         TipoPropuesta tipo;
         try {
             tipo = TipoPropuesta.valueOf(ia.tipo().trim().toUpperCase(Locale.ROOT));
         } catch (RuntimeException e) {
-            return null;
+            return descartar(motivos, "tipo desconocido");
         }
         LocalDate fecha = fecha(ia.fecha());
         LocalTime inicio = hora(ia.horaInicio());
         LocalTime fin = hora(ia.horaFin());
+        List<String> notas = new ArrayList<>();
+
+        boolean yaDescartada = contexto.descartados().contains(titulo);
+        if (yaDescartada) {
+            if (fecha == null) {
+                return descartar(motivos, "ya la descartaste"); // y sin plazo: respetamos la decisión
+            }
+            notas.add(DetectorDuplicados.NOTA_DESCARTADA);
+        }
+        if (fecha != null && fecha.isBefore(contexto.hoy())) {
+            notas.add("El documento pedía hacerlo para el " + fecha.format(FECHA_TEXTO) + ": ese plazo ya pasó.");
+            fecha = contexto.hoy();
+            inicio = null; // una sesión en el pasado no se puede agendar: queda como tarea urgente
+        }
+
         boolean sesionPosible = fecha != null && inicio != null && fin != null && fin.isAfter(inicio)
                 && !fecha.isBefore(evento.fechaInicio()) && !fecha.isAfter(evento.fechaFin());
         if (tipo == TipoPropuesta.SESION && !sesionPosible) {
-            tipo = TipoPropuesta.TAREA; // regla 4 de esta clase
+            tipo = TipoPropuesta.TAREA;
         }
         boolean esSesion = tipo == TipoPropuesta.SESION;
+        String descripcion = conNotas(ia.descripcion(), notas);
         try {
-            return Propuesta.crear(evento.id(), documentoId, documentoNombre, tipo, ia.titulo(), ia.descripcion(),
+            return Propuesta.crear(evento.id(), documentoId, documentoNombre, tipo, ia.titulo(), descripcion,
                     fecha, esSesion ? inicio : null, esSesion ? fin : null, esSesion ? ia.sala() : null,
-                    esSesion ? tipoSesion(ia.tipoSesion()) : null, ia.cita(),
+                    esSesion ? tipoSesion(ia.tipoSesion()) : null, citaReal,
                     fuente.paginaInicio(), fuente.paginaFin());
         } catch (ReglaDeNegocioException e) {
-            return null; // p. ej. sin título
+            return descartar(motivos, "datos inválidos (" + e.getMessage() + ")");
         }
     }
 
-    /** ¿La cita aparece en el texto? Comparando "en limpio": sin tildes, mayúsculas ni signos. */
-    static boolean citaEsTextual(String cita, String texto) {
-        String c = normalizar(cita == null ? "" : cita.replace("...", " "));
-        if (c.length() < 12) {
-            return false; // demasiado corta para demostrar algo ("el pago")
+    /**
+     * La oración REAL del fragmento que respalda lo que citó la IA, o null si ninguna se parece lo suficiente.
+     * Así la cita que ve la persona siempre es texto del documento, aunque la IA la haya copiado mal.
+     */
+    static String citaVerificada(String citaIa, String texto) {
+        Set<String> palabrasIa = palabras(citaIa == null ? "" : citaIa.replace("...", " "));
+        if (palabrasIa.size() < 3) {
+            return null; // demasiado corta para demostrar algo ("el pago")
         }
-        return normalizar(texto).contains(c);
+        String mejor = null;
+        double mejorParecido = 0;
+        // Corta en ". " / ": " / "; " SOLO si lo que sigue empieza en mayúscula (no parte "$30.000" ni "art. 3")
+        for (String oracion : texto.split("(?<=[.;:!?])\\s+(?=[\\p{Lu}¿¡«\"(])|\\n+")) {
+            Set<String> enOracion = palabras(oracion);
+            long comunes = palabrasIa.stream().filter(enOracion::contains).count();
+            double parecido = (double) comunes / palabrasIa.size();
+            if (parecido > mejorParecido) {
+                mejorParecido = parecido;
+                mejor = oracion.trim();
+            }
+        }
+        if (mejor == null || mejorParecido < PARECIDO_MINIMO) {
+            return null;
+        }
+        return mejor.length() > MAX_CITA ? mejor.substring(0, MAX_CITA - 3) + "..." : mejor;
+    }
+
+    /** Las palabras "con contenido" (3 letras o más), en limpio. */
+    private static Set<String> palabras(String s) {
+        return Arrays.stream(normalizar(s).split(" ")).filter(p -> p.length() >= 3).collect(Collectors.toSet());
     }
 
     /** "Pagaré el 30%  del ANTICIPO." -> "pagare el 30 del anticipo" */
     static String normalizar(String s) {
-        String sinTildes = Normalizer.normalize(s, Normalizer.Form.NFD).replaceAll("\\p{M}", "");
+        String sinTildes = Normalizer.normalize(s == null ? "" : s, Normalizer.Form.NFD).replaceAll("\\p{M}", "");
         return sinTildes.toLowerCase(Locale.ROOT).replaceAll("[^a-z0-9]+", " ").trim();
+    }
+
+    private static String conNotas(String descripcion, List<String> notas) {
+        if (notas.isEmpty()) {
+            return descripcion;
+        }
+        String base = descripcion == null || descripcion.isBlank() ? "" : descripcion.trim() + " ";
+        return base + String.join(" ", notas);
     }
 
     private static LocalDate fecha(String s) {

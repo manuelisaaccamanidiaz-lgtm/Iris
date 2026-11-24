@@ -45,7 +45,9 @@ import com.iris.application.propuesta.AceptarPropuesta;
 import com.iris.application.propuesta.DescartarPropuesta;
 import com.iris.application.propuesta.GenerarPropuestas;
 import com.iris.application.propuesta.ListarPropuestas;
+import com.iris.application.propuesta.RecuperarPropuesta;
 import com.iris.application.propuesta.RevisarDocumento;
+import com.iris.application.propuesta.RevisionesEnCurso;
 import com.iris.application.evento.CrearEvento;
 import com.iris.application.evento.ListarEventos;
 import com.iris.application.port.out.AlmacenTemporal;
@@ -286,8 +288,11 @@ public class CasosDeUsoConfig {
     @Bean
     GenerarPropuestas generarPropuestas(FragmentoRepositorio fragmentos, ContadorTokens contador,
                                         AnalizadorDocumentos analizador, PropuestaRepositorio propuestas,
-                                        DocumentoRepositorio documentos, EventoRepositorio eventos, Avisos avisos) {
-        return new GenerarPropuestas(fragmentos, contador, analizador, propuestas, documentos, eventos, avisos);
+                                        DocumentoRepositorio documentos, EventoRepositorio eventos, Avisos avisos,
+                                        TareaRepositorio tareas, SesionRepositorio sesiones,
+                                        GeneradorEmbeddings embeddings) {
+        return new GenerarPropuestas(fragmentos, contador, analizador, propuestas, documentos, eventos, avisos,
+                tareas, sesiones, embeddings);
     }
 
     @Bean
@@ -302,6 +307,11 @@ public class CasosDeUsoConfig {
     }
 
     @Bean
+    RevisionesEnCurso revisionesEnCurso(AccesoEvento acceso, GenerarPropuestas generar) {
+        return new RevisionesEnCurso(acceso, generar);
+    }
+
+    @Bean
     AceptarPropuesta aceptarPropuesta(AccesoEvento acceso, PropuestaRepositorio propuestas, TareaRepositorio tareas,
                                       SesionRepositorio sesiones, Transaccion transaccion, Avisos avisos) {
         return new AceptarPropuesta(acceso, propuestas, tareas, sesiones, transaccion, avisos);
@@ -310,6 +320,11 @@ public class CasosDeUsoConfig {
     @Bean
     DescartarPropuesta descartarPropuesta(AccesoEvento acceso, PropuestaRepositorio propuestas) {
         return new DescartarPropuesta(acceso, propuestas);
+    }
+
+    @Bean
+    RecuperarPropuesta recuperarPropuesta(AccesoEvento acceso, PropuestaRepositorio propuestas) {
+        return new RecuperarPropuesta(acceso, propuestas);
     }
 
     // --- Día 4.5 ---
