@@ -1,16 +1,24 @@
-/* 6.4: chat + panel derecho. El panel solo va AL LADO cuando hay espacio de verdad (>= 1200 px) */
-.chat-con-panel { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--space-6); }
-@media (min-width: 1200px) {
-  .chat-con-panel { grid-template-columns: minmax(0, 1fr) 300px; align-items: start; }
-  .panel-chat { position: sticky; top: var(--space-8); }
+/*
+ * 6.4 v2 (comentarios de Isaac): el chat LLENA la altura y la caja de escribir queda ABAJO DEL TODO;
+ * la conversación va CENTRADA en su columna; el panel derecho, casi pegado al borde de la pantalla.
+ * El panel solo existe desde 1100 px (en celular y tablet no se monta: ver Chat.jsx).
+ */
+.chat-con-panel {
+  height: 100%; /* el alto del contenido de la sección (el marco ya mide la pantalla) */
+  display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--space-6);
+}
+@media (min-width: 1100px) {
+  .chat-con-panel { grid-template-columns: minmax(0, 1fr) 300px; }
+  .panel-chat { overflow-y: auto; min-height: 0; padding-right: 2px; } /* si no cabe, se desplaza SOLO el panel */
 }
 
-.chat { display: flex; flex-direction: column; gap: var(--space-3); min-width: 0; }
+.chat { display: flex; flex-direction: column; gap: var(--space-3); min-width: 0; min-height: 0; }
+/* Todo dentro del chat comparte un ancho cómodo de lectura y va centrado */
+.chat > * { width: 100%; max-width: 860px; margin-inline: auto; }
 .chat-cabecera p { margin: var(--space-1) 0 0; }
 .chat-mensajes {
+  flex: 1; min-height: 0; overflow-y: auto; /* crece y empuja la caja de escribir hasta el fondo */
   display: flex; flex-direction: column; gap: var(--space-4);
-  /* dvh: la altura REAL visible en el celular (100vh incluye la barra del navegador y se "corta") */
-  min-height: 280px; max-height: calc(100dvh - 330px); overflow-y: auto;
   padding: var(--space-2) var(--space-1);
 }
 .chat-turno { display: flex; flex-direction: column; gap: var(--space-2); }
@@ -45,14 +53,15 @@
   padding: 2px var(--space-3) 2px 3px; border-radius: var(--radius-pill);
   border: 1px dashed var(--brand-ink); font-size: 12px; line-height: 18px;
 }
-.chat-bienvenida { display: flex; flex-direction: column; gap: var(--space-3); }
+/* Sin mensajes: la bienvenida va al centro vertical del espacio libre */
+.chat-bienvenida { margin-block: auto; display: flex; flex-direction: column; gap: var(--space-3); }
 .chat-sugerencias { display: flex; flex-wrap: wrap; gap: var(--space-2); }
 .chat-entrada { display: flex; gap: var(--space-3); align-items: flex-end; padding: var(--space-3); }
-.chat-entrada textarea { flex: 1; resize: vertical; min-width: 0; }
+.chat-entrada textarea { flex: 1; resize: none; min-width: 0; }
 .chat-nota { margin: 0; text-align: center; }
 @media (max-width: 639px) {
   .burbuja { max-width: 92%; }
-  .chat-mensajes { max-height: calc(100dvh - 300px); }
-  .chat-cabecera p { display: none; } /* en el celular, cada línea de pantalla cuenta */
+  .chat-cabecera p, .chat-nota { display: none; } /* en el celular, cada línea de pantalla cuenta */
+  .chat-cabecera h1 { font-size: 20px; line-height: 26px; }
 }
 @media (prefers-reduced-motion: reduce) { .cursor { animation: none; } }

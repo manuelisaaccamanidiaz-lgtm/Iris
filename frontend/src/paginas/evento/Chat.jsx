@@ -7,6 +7,7 @@ import { useEffect, useRef, useState } from "react";
 import { useOutletContext } from "react-router";
 import { api, mensajeLocal } from "../../api/cliente.js";
 import { preguntarEnVivo } from "../../api/streaming.js";
+import { useMedia } from "../../utilidades/pantalla.js";
 import "./Chat.css";
 import PanelChat from "./PanelChat.jsx";
 
@@ -29,6 +30,9 @@ function conCitas(texto) {
 
 export default function Chat() {
   const { evento, puedeEditar } = useOutletContext();
+  // v2 (decisión de Isaac): en celular y tablet NO hay panel. No basta ocultarlo con CSS: seguiría
+  // montado, pidiendo datos y preguntando cada 3 s por los documentos. Mismo truco que la campanita
+  const conPanel = useMedia("(min-width: 1100px)");
   const [mensajes, setMensajes] = useState([]);
   const [pregunta, setPregunta] = useState("");
   const [escribiendo, setEscribiendo] = useState(false);
@@ -182,7 +186,7 @@ export default function Chat() {
         </form>
         <p className="texto-suave chat-nota">Iris es una IA y puede equivocarse: revisa las fuentes citadas.</p>
       </div>
-      <PanelChat evento={evento} puedeEditar={puedeEditar} />
+      {conPanel && <PanelChat evento={evento} puedeEditar={puedeEditar} />}
     </div>
   );
 }

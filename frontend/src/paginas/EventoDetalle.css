@@ -9,12 +9,14 @@
 .evento-marco {
   display: grid;
   grid-template-columns: 256px minmax(0, 1fr); /* minmax(0, ...): el contenido puede encogerse sin desbordar */
-  min-height: 100vh;
+  /* v2: el marco mide EXACTAMENTE la pantalla y lo que se desplaza es el contenido (no la página entera).
+     Así el chat puede llenar la altura y dejar la caja de escribir pegada abajo, como cualquier app de chat */
+  height: 100dvh;
 }
 
 /* --- La barra lateral: el degradado verde petróleo -> azul del diseño original --- */
 .lateral {
-  position: sticky; top: 0; height: 100vh; /* se queda quieta mientras la página baja */
+  position: relative; z-index: 5; /* por ENCIMA del contenido: el panel de la campanita se sale de la lateral */
   display: flex; flex-direction: column; gap: var(--space-6);
   padding: var(--space-4) var(--space-3);
   background: var(--lateral);
@@ -80,7 +82,11 @@
 .lateral .campanita-panel { left: 0; right: auto; } /* en la lateral se abre hacia la derecha */
 
 /* --- El contenido de la sección --- */
-.evento-contenido { min-width: 0; padding: var(--space-8); max-width: 1240px; width: 100%; }
+.evento-contenido { min-width: 0; min-height: 0; overflow-y: auto; padding: var(--space-8); }
+/* v2: las secciones normales, CENTRADAS en el espacio libre (antes quedaban pegadas a la izquierda) */
+.evento-contenido > :not(.chat-con-panel) { max-width: 1100px; margin-inline: auto; }
+/* El chat usa todo el ancho: su panel derecho queda casi pegado al borde de la pantalla (decisión de Isaac) */
+.evento-contenido:has(.chat-con-panel) { padding: var(--space-4) var(--space-3) var(--space-4) var(--space-6); }
 .evento-error { padding: var(--space-8); display: flex; flex-direction: column; gap: var(--space-3); align-items: flex-start; }
 
 /* --- < 900 px: la lateral se vuelve un menú que se desliza desde la izquierda --- */
@@ -104,6 +110,7 @@
   .menu-abierto .lateral { transform: none; box-shadow: 0 0 40px rgba(0, 0, 0, 0.35); }
   .lateral-fondo { position: fixed; inset: 0; z-index: 30; background: rgba(15, 23, 22, 0.5); }
   .evento-contenido { padding: var(--space-6) var(--space-4); }
+  .evento-contenido:has(.chat-con-panel) { padding: var(--space-3) var(--space-3) var(--space-2); }
 }
 @media (max-width: 639px) {
   .evento-contenido { padding: var(--space-4) var(--space-3); }

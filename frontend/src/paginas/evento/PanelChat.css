@@ -1,4 +1,4 @@
-/* 6.4 Panel derecho del chat. En pantallas de menos de 1200 px baja debajo del chat (ver Chat.css) */
+/* 6.4 Panel derecho del chat. Solo existe desde 1100 px (ver Chat.css y Chat.jsx) */
 .panel-chat { display: flex; flex-direction: column; gap: var(--space-4); }
 .panel-bloque {
   display: flex; flex-direction: column; gap: var(--space-2);
