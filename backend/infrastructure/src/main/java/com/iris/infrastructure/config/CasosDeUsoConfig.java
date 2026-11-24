@@ -289,9 +289,10 @@ public class CasosDeUsoConfig {
     GenerarPropuestas generarPropuestas(FragmentoRepositorio fragmentos, ContadorTokens contador,
                                         AnalizadorDocumentos analizador, PropuestaRepositorio propuestas,
                                         DocumentoRepositorio documentos, EventoRepositorio eventos, Avisos avisos,
-                                        TareaRepositorio tareas, SesionRepositorio sesiones) {
+                                        TareaRepositorio tareas, SesionRepositorio sesiones,
+                                        GeneradorEmbeddings embeddings) {
         return new GenerarPropuestas(fragmentos, contador, analizador, propuestas, documentos, eventos, avisos,
-                tareas, sesiones);
+                tareas, sesiones, embeddings);
     }
 
     @Bean

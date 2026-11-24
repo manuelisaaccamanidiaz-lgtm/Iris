@@ -31,7 +31,8 @@ public final class PromptPropuestas {
             Si falta alguna de las tres, propónla como TAREA.
             4. Fechas relativas ("30 días antes del evento", "el día de la inauguración"): calcúlalas con las \
             fechas del evento que te doy. Si no puedes calcularlas con seguridad, deja "fecha" en "".
-            5. Cada propuesta indica "fragmento" (el número [n] donde está la evidencia) y "cita": una frase \
+            5. Cada propuesta indica "fragmento" (solo el número n del fragmento [n] donde está la evidencia, por \
+            ejemplo "3") y "cita": una frase \
             COPIADA TEXTUALMENTE de ese fragmento, de máximo 200 caracteres. Sin cita textual no hay propuesta.
             6. "titulo": corto (máximo 80 caracteres), en español, empezando con un verbo. "descripcion": una \
             frase con el detalle importante (monto, cantidad, condición, penalidad).

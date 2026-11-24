@@ -3,6 +3,7 @@ package com.iris.application.propuesta;
 import java.lang.System.Logger.Level;
 import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -12,6 +13,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import com.iris.application.notificacion.Avisos;
 import com.iris.application.port.out.AnalizadorDocumentos;
 import com.iris.application.port.out.ContadorTokens;
+import com.iris.application.port.out.GeneradorEmbeddings;
 import com.iris.domain.agenda.Sesion;
 import com.iris.domain.agenda.SesionRepositorio;
 import com.iris.domain.agenda.Tarea;
@@ -55,6 +57,7 @@ public class GenerarPropuestas {
     private final Avisos avisos;
     private final TareaRepositorio tareas;
     private final SesionRepositorio sesiones;
+    private final DetectorDuplicados duplicados;
 
     /**
      * Documentos que Iris está revisando AHORA (documento -> su evento, para poder contestar
@@ -70,7 +73,7 @@ public class GenerarPropuestas {
     public GenerarPropuestas(FragmentoRepositorio fragmentos, ContadorTokens contador,
                              AnalizadorDocumentos analizador, PropuestaRepositorio propuestas,
                              DocumentoRepositorio documentos, EventoRepositorio eventos, Avisos avisos,
-                             TareaRepositorio tareas, SesionRepositorio sesiones) {
+                             TareaRepositorio tareas, SesionRepositorio sesiones, GeneradorEmbeddings embeddings) {
         this.fragmentos = fragmentos;
         this.contador = contador;
         this.analizador = analizador;
@@ -80,6 +83,7 @@ public class GenerarPropuestas {
         this.avisos = avisos;
         this.tareas = tareas;
         this.sesiones = sesiones;
+        this.duplicados = new DetectorDuplicados(embeddings);
     }
 
     /** El núcleo: quien llama ya comprobó permisos y que el documento esté INDEXADO. */
@@ -123,11 +127,14 @@ public class GenerarPropuestas {
 
         ValidadorPropuestas.Resultado r = ValidadorPropuestas.validar(brutas, texto, doc.id(), doc.nombreArchivo(), evento,
                 ValidadorPropuestas.Contexto.de(hoy, yaExisten, descartadas));
-        if (r.descartadas() > 0) {
-            LOG.log(Level.INFO, "Propuestas descartadas por el validador en «" + doc.nombreArchivo() + "»: "
-                    + r.descartadas() + " " + r.motivos());
+        // Segundo filtro: duplicados por SIGNIFICADO (embeddings). Suma sus motivos a los del validador
+        Map<String, Integer> motivos = new LinkedHashMap<>(r.motivos());
+        List<Propuesta> finales = duplicados.filtrar(r.validas(), yaExisten, descartadas, motivos);
+        if (!motivos.isEmpty()) {
+            int total = motivos.values().stream().mapToInt(Integer::intValue).sum();
+            LOG.log(Level.INFO, "Propuestas descartadas en «" + doc.nombreArchivo() + "»: " + total + " " + motivos);
         }
-        List<Propuesta> guardadas = propuestas.reemplazarPendientesDelDocumento(doc.id(), r.validas());
+        List<Propuesta> guardadas = propuestas.reemplazarPendientesDelDocumento(doc.id(), finales);
 
         if (!guardadas.isEmpty()) {
             String mensaje = "Iris leyó «" + doc.nombreArchivo() + "» y propone " + guardadas.size()

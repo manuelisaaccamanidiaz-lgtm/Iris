@@ -126,12 +126,28 @@ class AnalizadorDocumentosGroq implements AnalizadorDocumentos {
             @JsonProperty(required = true, value = "horaFin") String horaFin,
             @JsonProperty(required = true, value = "sala") String sala,
             @JsonProperty(required = true, value = "tipoSesion") String tipoSesion,
-            @JsonProperty(required = true, value = "fragmento") int fragmento,
+            // TEXTO y no int: un int genera "format": "int32" en el esquema, y Groq lo rechaza (400:
+            // "'format' is only allowed when type is 'string'"). Por eso el modo estricto NUNCA funcionó
+            // y siempre caíamos al respaldo sin forma garantizada. Lo descubrimos leyendo el WARN del log.
+            @JsonProperty(required = true, value = "fragmento") String fragmento,
             @JsonProperty(required = true, value = "cita") String cita) {
 
         PropuestaIA aPuerto() {
             return new PropuestaIA(tipo, titulo, descripcion, fecha, horaInicio, horaFin, sala, tipoSesion,
-                    fragmento, cita);
+                    numero(fragmento), cita);
+        }
+    }
+
+    /** "3", " 3 " o "[3]" -> 3. Cualquier otra cosa -> 0 ("no existe": el validador la descarta). */
+    static int numero(String texto) {
+        if (texto == null) {
+            return 0;
+        }
+        String digitos = texto.replaceAll("[^0-9]", "");
+        try {
+            return digitos.isEmpty() ? 0 : Integer.parseInt(digitos);
+        } catch (NumberFormatException e) {
+            return 0; // un número absurdamente largo
         }
     }
 
@@ -143,12 +159,11 @@ class AnalizadorDocumentosGroq implements AnalizadorDocumentos {
 
     @JsonIgnoreProperties(ignoreUnknown = true)
     record ItemFlexible(String tipo, String titulo, String descripcion, String fecha, String horaInicio,
-                        String horaFin, String sala, String tipoSesion, Integer fragmento, String cita) {
+                        String horaFin, String sala, String tipoSesion, String fragmento, String cita) {
 
         PropuestaIA aPuerto() {
-            // fragmento ausente = 0 = "no existe": el validador la descarta con su motivo
             return new PropuestaIA(tipo, titulo, descripcion, fecha, horaInicio, horaFin, sala, tipoSesion,
-                    fragmento == null ? 0 : fragmento, cita);
+                    numero(fragmento), cita);
         }
     }
 }

@@ -136,7 +136,7 @@ public final class ValidadorPropuestas {
             if (fecha == null) {
                 return descartar(motivos, "ya la descartaste"); // y sin plazo: respetamos la decisión
             }
-            notas.add("La descartaste antes, pero el documento fija un plazo para esto.");
+            notas.add(DetectorDuplicados.NOTA_DESCARTADA);
         }
         if (fecha != null && fecha.isBefore(contexto.hoy())) {
             notas.add("El documento pedía hacerlo para el " + fecha.format(FECHA_TEXTO) + ": ese plazo ya pasó.");
