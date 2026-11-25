@@ -4,7 +4,7 @@
  *  - manda JSON o un formulario (para subir PDFs)
  *  - convierte los errores del ManejadorErrores (ProblemDetail: title + detail) en ErrorApi
  */
-const BASE = import.meta.env.VITE_API_URL ?? "http://localhost:8080";
+const BASE = import.meta.env.VITE_API_URL ?? "https://localhost:8080";
 const CLAVE_TOKEN = "iris.token";
 
 /** El "gafete": en sessionStorage, se borra al cerrar la pestaña (decisión de Isaac). */

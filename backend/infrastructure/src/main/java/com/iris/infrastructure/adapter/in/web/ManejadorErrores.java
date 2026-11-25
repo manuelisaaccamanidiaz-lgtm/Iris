@@ -17,6 +17,7 @@ import org.springframework.web.method.annotation.MethodArgumentTypeMismatchExcep
 import org.springframework.web.multipart.MaxUploadSizeExceededException;
 
 import com.iris.application.auth.CredencialesInvalidasException;
+import com.iris.application.port.out.AntivirusNoDisponibleException;
 import com.iris.application.port.out.IaNoDisponibleException;
 import com.iris.domain.compartido.AccesoDenegadoException;
 import com.iris.domain.compartido.RecursoNoEncontradoException;
@@ -97,6 +98,14 @@ class ManejadorErrores {
     ProblemDetail iaNoDisponible(IaNoDisponibleException e) {
         return problema(HttpStatus.SERVICE_UNAVAILABLE, "Iris está ocupada",
                 "El servicio de IA falló o respondió algo que no pude leer (puede ser el límite de uso por minuto). Intenta de nuevo en un minuto.");
+    }
+
+    /** 503 y NO se acepta el archivo: si no pudimos escanearlo, no lo dejamos pasar ("fallar cerrado"). */
+    @ExceptionHandler(AntivirusNoDisponibleException.class)
+    ProblemDetail antivirusNoDisponible(AntivirusNoDisponibleException e) {
+        log.error("Antivirus no disponible", e);
+        return problema(HttpStatus.SERVICE_UNAVAILABLE, "Antivirus no disponible",
+                "No pude revisar el archivo con el antivirus, así que no lo acepté. Intenta de nuevo en un momento.");
     }
 
     @ExceptionHandler(Exception.class)

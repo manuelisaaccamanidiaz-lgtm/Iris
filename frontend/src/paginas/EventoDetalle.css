@@ -76,6 +76,7 @@
 /* Botones dentro de la lateral oscura: "fantasma", igual que en la barra superior */
 .lateral .boton, .evento-movil .boton { background: transparent; color: var(--on-barra); border-color: rgba(255, 255, 255, 0.28); }
 .lateral .boton:hover, .evento-movil .boton:hover { background: rgba(255, 255, 255, 0.1); }
+.lateral-completa { justify-content: center; font-size: 13px; padding: var(--space-1) var(--space-2); }
 .lateral-salir { padding: var(--space-1) var(--space-2); font-size: 13px; }
 /* ...pero el panel de la campanita es una tarjeta clara: le devolvemos sus colores */
 .lateral .campanita-panel .boton, .evento-movil .campanita-panel .boton { background: var(--surface-card); color: var(--ink); border-color: var(--border); }
@@ -103,7 +104,9 @@
   .evento-movil-menu { padding: var(--space-2); }
   .evento-movil-nombre { flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-family: var(--font-display); }
   .lateral {
-    position: fixed; left: 0; top: 0; z-index: 40;
+    /* top + bottom: del techo al piso. El bug: al quitar "height: 100vh" de la versión de escritorio,
+       el menú quedó del alto de su contenido y parecía una ventana emergente */
+    position: fixed; left: 0; top: 0; bottom: 0; z-index: 40;
     width: min(300px, 86vw); overflow-y: auto;
     transform: translateX(-100%); transition: transform 0.22s ease-out;
   }

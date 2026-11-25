@@ -23,6 +23,7 @@
 @media (max-width: 899px) {
   .barra { flex-wrap: wrap; gap: var(--space-3); padding: var(--space-3) var(--space-4); }
   .barra-email { display: none; } /* el email ya sale en "Salir"; en pantalla chica no cabe */
+  .barra-completa span { display: none; } /* en pantalla chica, solo el ícono */
   .contenido { padding: var(--space-6) var(--space-4); }
 }
 @media (max-width: 639px) {

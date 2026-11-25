@@ -18,8 +18,9 @@ import { api } from "../api/cliente.js";
 import { useAuth } from "../auth/AuthContext.jsx";
 import Campanita from "../componentes/Campanita.jsx";
 import Icono from "../componentes/Iconos.jsx";
+import PantallaCompleta from "../componentes/PantallaCompleta.jsx";
 import { fecha, fechaCorta } from "../utilidades/fechas.js";
-import { CORTE_MENU, useMedia } from "../utilidades/pantalla.js";
+import { CORTE_MENU, CORTE_PANEL, useMedia } from "../utilidades/pantalla.js";
 import "./EventoDetalle.css";
 
 const ROL = { PROPIETARIO: "Propietario", EDITOR: "Editor", LECTOR: "Lector" };
@@ -30,6 +31,7 @@ export default function EventoDetalle() {
   const { usuario, salir } = useAuth();
   const { pathname } = useLocation();
   const esMovil = useMedia(CORTE_MENU);
+  const panelAlLado = useMedia(CORTE_PANEL); // sin panel al lado del chat, aparece la sección Resumen
 
   const [evento, setEvento] = useState(null);
   const [error, setError] = useState(null);
@@ -113,6 +115,7 @@ export default function EventoDetalle() {
 
         <nav className="lateral-nav">
           <NavLink to="chat"><Icono nombre="chat" /> Pregúntale a Iris</NavLink>
+          {!panelAlLado && <NavLink to="resumen"><Icono nombre="resumen" /> Resumen</NavLink>}
           <NavLink to="documentos"><Icono nombre="documentos" /> Documentos</NavLink>
           <NavLink to="agenda"><Icono nombre="agenda" /> Agenda</NavLink>
           <NavLink to="tareas"><Icono nombre="tareas" /> Tareas</NavLink>
@@ -129,6 +132,7 @@ export default function EventoDetalle() {
         </nav>
 
         <div className="lateral-pie">
+          <PantallaCompleta className="boton lateral-completa" />
           {/* Interruptor de dos opciones: aria-pressed dice cuál está activa */}
           <div className="lateral-tema" role="group" aria-label="Tema de la aplicación">
             <button className={tema !== "dark" ? "activo" : ""} aria-pressed={tema !== "dark"}
