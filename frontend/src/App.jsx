@@ -3,8 +3,10 @@
  * Las que van dentro de <RutaPrivada><Layout/></RutaPrivada> exigen sesión y comparten la barra superior.
  */
 import { Navigate, Route, Routes } from "react-router";
+import RutaAdmin from "./auth/RutaAdmin.jsx";
 import RutaPrivada from "./auth/RutaPrivada.jsx";
 import Layout from "./componentes/Layout.jsx";
+import Admin from "./paginas/Admin.jsx";
 import Agenda from "./paginas/evento/Agenda.jsx";
 import Chat from "./paginas/evento/Chat.jsx";
 import Documentos from "./paginas/evento/Documentos.jsx";
@@ -26,6 +28,7 @@ export default function App() {
       <Route element={<RutaPrivada><Layout /></RutaPrivada>}>
         <Route index element={<Eventos />} />
         <Route path="invitaciones" element={<Invitaciones />} />
+        <Route path="admin" element={<RutaAdmin><Admin /></RutaAdmin>} />
         <Route path="eventos/:eventoId" element={<EventoDetalle />}>
           {/* /eventos/:id a secas -> la pestaña del chat */}
           <Route index element={<Navigate to="chat" replace />} />
