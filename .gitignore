@@ -6,6 +6,10 @@ target/
 .env.*
 !.env.example
 
+# Certificados HTTPS (mkcert): la llave privada es personal de cada equipo
+certs/
+*.pem
+
 # IDEs
 .idea/
 *.iml
