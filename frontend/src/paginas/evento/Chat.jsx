@@ -7,7 +7,7 @@ import { useEffect, useRef, useState } from "react";
 import { useOutletContext } from "react-router";
 import { api, mensajeLocal } from "../../api/cliente.js";
 import { preguntarEnVivo } from "../../api/streaming.js";
-import { useMedia } from "../../utilidades/pantalla.js";
+import { CORTE_PANEL, useMedia } from "../../utilidades/pantalla.js";
 import "./Chat.css";
 import PanelChat from "./PanelChat.jsx";
 
@@ -32,7 +32,7 @@ export default function Chat() {
   const { evento, puedeEditar } = useOutletContext();
   // v2 (decisión de Isaac): en celular y tablet NO hay panel. No basta ocultarlo con CSS: seguiría
   // montado, pidiendo datos y preguntando cada 3 s por los documentos. Mismo truco que la campanita
-  const conPanel = useMedia("(min-width: 1100px)");
+  const conPanel = useMedia(CORTE_PANEL);
   const [mensajes, setMensajes] = useState([]);
   const [pregunta, setPregunta] = useState("");
   const [escribiendo, setEscribiendo] = useState(false);

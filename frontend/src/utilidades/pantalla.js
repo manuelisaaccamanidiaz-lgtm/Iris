@@ -9,6 +9,9 @@ import { useEffect, useState } from "react";
 /** El MISMO corte que usa EventoDetalle.css: por debajo, la barra lateral se vuelve un menú. */
 export const CORTE_MENU = "(max-width: 899px)";
 
+/** Desde aquí el panel va AL LADO del chat (Chat.css); por debajo, existe la sección "Resumen". */
+export const CORTE_PANEL = "(min-width: 1100px)";
+
 export function useMedia(consulta) {
   const [coincide, setCoincide] = useState(() => window.matchMedia(consulta).matches);
 
