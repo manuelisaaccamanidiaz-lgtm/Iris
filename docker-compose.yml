@@ -33,5 +33,19 @@ services:
       - "8025:8025"   # interfaz web
       - "1025:1025"   # SMTP
 
+  # Antivirus (requisito: "escaneo de archivos"). Imagen OFICIAL de ClamAV, versión 1.5 (la estable según
+  # docs.clamav.net). Arranca junto con todo lo demás. Pide de 3 a 4 GiB de RAM (documentación oficial).
+  # La primera vez descarga las firmas de virus: está listo cuando el log dice "Database correctly reloaded"
+  antivirus:
+    image: clamav/clamav:1.5
+    container_name: iris-antivirus
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:3310:3310"   # solo desde tu PC, no desde la red
+    volumes:
+      # Las firmas se guardan aquí: así no se vuelven a descargar en cada arranque
+      - iris-antivirus-firmas:/var/lib/clamav
+
 volumes:
   iris-db-data:
+  iris-antivirus-firmas:

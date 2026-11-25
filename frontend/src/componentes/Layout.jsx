@@ -9,6 +9,7 @@ import { useEffect, useState } from "react";
 import { Link, NavLink, Outlet, useMatch } from "react-router";
 import { useAuth } from "../auth/AuthContext.jsx";
 import Campanita from "./Campanita.jsx";
+import PantallaCompleta from "./PantallaCompleta.jsx";
 import "./Layout.css";
 
 /** Tema guardado (en localStorage: es una PREFERENCIA, no un dato sensible) o el del sistema. */
@@ -49,6 +50,7 @@ export default function Layout() {
         </nav>
         <div className="barra-derecha">
           <Campanita />
+          <PantallaCompleta className="boton barra-completa" />
           <button className="boton" onClick={alternarTema} aria-label="Cambiar entre modo claro y oscuro">
             {tema === "dark" ? "Claro" : "Oscuro"}
           </button>

@@ -28,7 +28,12 @@ function urgencia(t, hoy) {
   return { texto: `Vence ${fechaCorta(t.fechaLimite)}`, clase: "chip-coral" };
 }
 
-export default function PanelChat({ evento, puedeEditar }) {
+/**
+ * @param conSubida la zona para soltar un PDF. Es un ATAJO de escritorio (arrastrar desde el explorador
+ *                  mientras chateas); en la sección Resumen del celular sobra (decisión de Isaac): para
+ *                  subir está Documentos.
+ */
+export default function PanelChat({ evento, puedeEditar, conSubida = true }) {
   const avisos = useAvisos();
   const base = `/api/eventos/${evento.id}`;
   const hoy = hoyIso();
@@ -96,17 +101,27 @@ export default function PanelChat({ evento, puedeEditar }) {
   const proxima = deHoy.length ? null : sesiones
     .filter((s) => s.fecha > hoy)
     .sort((a, b) => (a.fecha + a.horaInicio).localeCompare(b.fecha + b.horaInicio))[0];
-  const nadaUrgente = urgentes.length === 0 && porRevisar === 0;
+  // Idea de Isaac: una tarea sin responsable es una tarea que nadie va a hacer
+  const sinResponsable = tareas.filter((t) => !t.responsableId).length;
+  const nadaUrgente = urgentes.length === 0 && porRevisar === 0 && sinResponsable === 0;
 
   return (
     <aside className="panel-chat" aria-label="Resumen del evento">
       <section className="panel-bloque">
         <h2 className="panel-titulo">Necesita tu atención</h2>
-        {nadaUrgente && <p className="texto-suave panel-nada">Todo al día. Nada vence en los próximos 3 días.</p>}
+        {nadaUrgente && <p className="texto-suave panel-nada">Todo al día: nada vence en 3 días y cada tarea tiene responsable.</p>}
         {porRevisar > 0 && (
           <Link to="../propuestas" className="panel-atencion panel-atencion-iris">
             <span className="lateral-contador">{porRevisar}</span>
             {porRevisar === 1 ? "propuesta de Iris por revisar" : "propuestas de Iris por revisar"}
+          </Link>
+        )}
+        {sinResponsable > 0 && (
+          <Link to="../tareas" className="panel-atencion">
+            <span className="panel-atencion-titulo">
+              {sinResponsable === 1 ? "1 tarea pendiente sin responsable" : `${sinResponsable} tareas pendientes sin responsable`}
+            </span>
+            <span className="chip chip-aviso">Asignar</span>
           </Link>
         )}
         {urgentes.map((t) => {
@@ -155,7 +170,7 @@ export default function PanelChat({ evento, puedeEditar }) {
             );
           })}
         </ul>
-        {puedeEditar && (
+        {puedeEditar && conSubida && (
           // Un <label> que envuelve el input: hacer clic (o Enter con el teclado) abre el selector de archivos
           <label className={`panel-soltar ${arrastrando ? "arrastrando" : ""}`} {...zona}>
             <input ref={entrada} type="file" accept="application/pdf" className="solo-lectores"

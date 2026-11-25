@@ -6,6 +6,13 @@ target/
 .env.*
 !.env.example
 
+# Certificados HTTPS (mkcert): la llave privada es personal de cada equipo
+certs/
+*.pem
+
+# PWA: el service worker que vite-plugin-pwa genera en "npm run dev" (se regenera solo)
+dev-dist/
+
 # IDEs
 .idea/
 *.iml

@@ -1,4 +1,7 @@
-/* 6.4 Panel derecho del chat. Solo existe desde 1100 px (ver Chat.css y Chat.jsx) */
+/* 6.4 Panel derecho del chat. Al lado del chat desde 1100 px; por debajo, en la sección Resumen */
+.resumen { display: flex; flex-direction: column; gap: var(--space-4); }
+/* "div.resumen" pesa más que la regla general de ancho de EventoDetalle.css (especificidad 0,2,1 > 0,2,0) */
+.evento-contenido > div.resumen { max-width: 640px; }
 .panel-chat { display: flex; flex-direction: column; gap: var(--space-4); }
 .panel-bloque {
   display: flex; flex-direction: column; gap: var(--space-2);
