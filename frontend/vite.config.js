@@ -23,7 +23,7 @@ const pwa = VitePWA({
   devOptions: { enabled: true }, // también en "npm run dev": así se puede instalar en la demo
   includeAssets: ['favicon.svg', 'apple-touch-icon.png'],
   manifest: {
-    name: 'Iris · Pregúntale a Iris',
+    name: 'Iris', // decisión de Isaac: solo "Iris" (es el nombre de la ventana y del menú Inicio)
     short_name: 'Iris',
     description: 'Asistente para organizadores de eventos: responde con tus documentos y siempre cita la fuente.',
     lang: 'es',
