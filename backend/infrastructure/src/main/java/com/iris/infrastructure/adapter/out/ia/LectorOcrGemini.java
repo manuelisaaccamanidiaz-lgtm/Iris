@@ -21,6 +21,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.http.client.SimpleClientHttpRequestFactory;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.HttpClientErrorException;
+import org.springframework.web.client.HttpServerErrorException;
 import org.springframework.web.client.RestClient;
 import org.springframework.web.client.RestClientException;
 
@@ -88,25 +89,32 @@ class LectorOcrGemini implements LectorOcr {
                         Parte.imagen(Base64.getEncoder().encodeToString(png)),
                         Parte.texto(INSTRUCCION)))),
                 Map.of("temperature", 0)); // transcribir, no crear
-        try {
-            return llamar(peticion);
-        } catch (HttpClientErrorException.TooManyRequests e) {
-            // 429 = límite por minuto del plan gratis: esperamos un poco y lo intentamos UNA vez más
-            log.warn("Gemini OCR: límite por minuto en la página {}; reintento en 10 s", numero);
-            esperar(10_000);
-            try {
-                return llamar(peticion);
-            } catch (RestClientException otra) {
-                throw new IaNoDisponibleException("Gemini no pudo leer la página " + numero + " (OCR)", otra);
+        RestClientException ultimo = null;
+        // v2: cada modelo de la lista tiene DOS oportunidades; si sigue saturado, pasamos al siguiente
+        for (String modelo : propiedades.modelos()) {
+            for (int intento = 1; intento <= 2; intento++) {
+                try {
+                    return llamar(modelo, peticion);
+                } catch (HttpClientErrorException.TooManyRequests | HttpServerErrorException e) {
+                    // 429 = límite por minuto; 503 = "demanda alta" (pasajero, dice Google): vale la pena esperar
+                    ultimo = e;
+                    log.warn("Gemini OCR ({}), página {}, intento {}: {}", modelo, numero, intento, e.getStatusCode());
+                    esperar(intento * 5_000L);
+                } catch (RestClientException e) {
+                    ultimo = e; // otro error (404 modelo inexistente, 400...): no insistimos con ESTE modelo
+                    log.warn("Gemini OCR ({}), página {}: {}", modelo, numero, e.getMessage());
+                    break;
+                }
             }
-        } catch (RestClientException e) {
-            throw new IaNoDisponibleException("Gemini no pudo leer la página " + numero + " (OCR): " + e.getMessage(), e);
         }
+        // El mensaje lo ve la persona en Documentos: claro y sin el JSON técnico de Google (ese queda en el log)
+        throw new IaNoDisponibleException("Gemini está saturado en este momento y no pudo leer la página " + numero
+                + " escaneada. Vuelve a subir el documento en unos minutos", ultimo);
     }
 
-    private String llamar(Peticion peticion) {
+    private String llamar(String modelo, Peticion peticion) {
         Respuesta r = cliente.post()
-                .uri("/models/{modelo}:generateContent", propiedades.modelo())
+                .uri("/models/{modelo}:generateContent", modelo)
                 .header("x-goog-api-key", propiedades.apiKey()) // la clave va en la cabecera, nunca en la URL
                 .body(peticion)
                 .retrieve()
