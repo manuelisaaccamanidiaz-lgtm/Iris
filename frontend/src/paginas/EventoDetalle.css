@@ -76,6 +76,7 @@
 /* Botones dentro de la lateral oscura: "fantasma", igual que en la barra superior */
 .lateral .boton, .evento-movil .boton { background: transparent; color: var(--on-barra); border-color: rgba(255, 255, 255, 0.28); }
 .lateral .boton:hover, .evento-movil .boton:hover { background: rgba(255, 255, 255, 0.1); }
+.lateral-completa { justify-content: center; font-size: 13px; padding: var(--space-1) var(--space-2); }
 .lateral-salir { padding: var(--space-1) var(--space-2); font-size: 13px; }
 /* ...pero el panel de la campanita es una tarjeta clara: le devolvemos sus colores */
 .lateral .campanita-panel .boton, .evento-movil .campanita-panel .boton { background: var(--surface-card); color: var(--ink); border-color: var(--border); }

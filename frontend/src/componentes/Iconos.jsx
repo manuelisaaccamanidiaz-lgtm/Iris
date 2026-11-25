@@ -13,6 +13,8 @@ const TRAZOS = {
   menu: <path d="M4 7h16M4 12h16M4 17h16" />,
   resumen: <><rect x="5" y="4" width="14" height="17" rx="2" /><path d="M9 4.5V3h6v1.5M9 10h6M9 14h6M9 18h3" /></>,
   volver: <path d="M15 5l-7 7 7 7" />,
+  expandir: <path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5" />,
+  contraer: <path d="M9 4v5H4M15 4v5h5M9 20v-5H4M15 20v-5h5" />,
 };
 
 export default function Icono({ nombre, tamano = 20 }) {

@@ -18,6 +18,7 @@ import { api } from "../api/cliente.js";
 import { useAuth } from "../auth/AuthContext.jsx";
 import Campanita from "../componentes/Campanita.jsx";
 import Icono from "../componentes/Iconos.jsx";
+import PantallaCompleta from "../componentes/PantallaCompleta.jsx";
 import { fecha, fechaCorta } from "../utilidades/fechas.js";
 import { CORTE_MENU, CORTE_PANEL, useMedia } from "../utilidades/pantalla.js";
 import "./EventoDetalle.css";
@@ -131,6 +132,7 @@ export default function EventoDetalle() {
         </nav>
 
         <div className="lateral-pie">
+          <PantallaCompleta className="boton lateral-completa" />
           {/* Interruptor de dos opciones: aria-pressed dice cuál está activa */}
           <div className="lateral-tema" role="group" aria-label="Tema de la aplicación">
             <button className={tema !== "dark" ? "activo" : ""} aria-pressed={tema !== "dark"}
