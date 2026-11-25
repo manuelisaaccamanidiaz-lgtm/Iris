@@ -28,7 +28,12 @@ function urgencia(t, hoy) {
   return { texto: `Vence ${fechaCorta(t.fechaLimite)}`, clase: "chip-coral" };
 }
 
-export default function PanelChat({ evento, puedeEditar }) {
+/**
+ * @param conSubida la zona para soltar un PDF. Es un ATAJO de escritorio (arrastrar desde el explorador
+ *                  mientras chateas); en la sección Resumen del celular sobra (decisión de Isaac): para
+ *                  subir está Documentos.
+ */
+export default function PanelChat({ evento, puedeEditar, conSubida = true }) {
   const avisos = useAvisos();
   const base = `/api/eventos/${evento.id}`;
   const hoy = hoyIso();
@@ -155,7 +160,7 @@ export default function PanelChat({ evento, puedeEditar }) {
             );
           })}
         </ul>
-        {puedeEditar && (
+        {puedeEditar && conSubida && (
           // Un <label> que envuelve el input: hacer clic (o Enter con el teclado) abre el selector de archivos
           <label className={`panel-soltar ${arrastrando ? "arrastrando" : ""}`} {...zona}>
             <input ref={entrada} type="file" accept="application/pdf" className="solo-lectores"
