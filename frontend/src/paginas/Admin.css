@@ -1,0 +1,21 @@
+/* Panel de administración: tarjetas en rejilla, una columna en celular */
+.admin { display: flex; flex-direction: column; gap: var(--space-6); }
+.admin-cabecera p { margin: var(--space-1) 0 0; max-width: 720px; }
+.admin-cabecera .chip { margin-bottom: var(--space-2); }
+.admin-rejilla { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: var(--space-4); }
+.admin-tarjeta { display: flex; flex-direction: column; gap: var(--space-3); align-items: flex-start; }
+.admin-tarjeta > p { margin: 0; }
+.admin-resultado { display: flex; flex-direction: column; gap: var(--space-2); margin: 0; width: 100%; }
+.admin-resultado p { margin: 0; }
+/* En una columna flex, los hijos se ESTIRAN a todo el ancho: el chip se queda de su tamaño */
+.admin-resultado > .chip { align-self: flex-start; }
+.admin-resultado .burbuja { max-width: 100%; }
+.admin-lista { margin: 0; padding-left: var(--space-4); }
+.admin-form { display: flex; gap: var(--space-2); width: 100%; }
+.admin-form .campo { flex: 1; min-width: 0; }
+.admin-form-columna { flex-direction: column; }
+.admin-form-columna .boton { align-self: flex-start; }
+.admin-medidor { width: 100%; height: 10px; border-radius: var(--radius-pill); background: var(--surface); border: 1px solid var(--border); overflow: hidden; }
+.admin-medidor span { display: block; height: 100%; background: var(--brand); }
+code { font-size: 13px; }
+@media (max-width: 639px) { .admin-rejilla { grid-template-columns: 1fr; } .admin-form { flex-direction: column; } }

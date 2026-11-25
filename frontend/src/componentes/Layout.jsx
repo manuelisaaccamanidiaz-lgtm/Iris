@@ -47,6 +47,8 @@ export default function Layout() {
             Mis eventos
           </NavLink>
           <NavLink to="/invitaciones">Invitaciones</NavLink>
+          {/* Solo la cuenta de administrador ve esta sección (el backend igual exige ROLE_ADMIN) */}
+          {usuario?.rol === "ADMIN" && <NavLink to="/admin">Administración</NavLink>}
         </nav>
         <div className="barra-derecha">
           <Campanita />
@@ -54,6 +56,7 @@ export default function Layout() {
           <button className="boton" onClick={alternarTema} aria-label="Cambiar entre modo claro y oscuro">
             {tema === "dark" ? "Claro" : "Oscuro"}
           </button>
+          {usuario?.rol === "ADMIN" && <span className="chip chip-coral">Admin</span>}
           <span className="texto-suave barra-email">{usuario?.email}</span>
           <button className="boton" onClick={salir}>
             Salir
