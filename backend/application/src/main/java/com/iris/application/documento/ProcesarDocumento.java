@@ -11,6 +11,7 @@ import com.iris.domain.notificacion.TipoNotificacion;
 import com.iris.application.port.out.ExtractorTexto;
 import com.iris.application.port.out.ExtractorTexto.PaginaTexto;
 import com.iris.application.port.out.GeneradorEmbeddings;
+import com.iris.application.port.out.LectorOcr;
 import com.iris.domain.documento.Documento;
 import com.iris.domain.documento.DocumentoRepositorio;
 import com.iris.domain.documento.EstadoDocumento;
@@ -29,6 +30,13 @@ import com.iris.domain.documento.FragmentoRepositorio;
  */
 public class ProcesarDocumento {
 
+    /** Con menos letras que esto, la página "no tiene texto": casi seguro es una imagen escaneada. */
+    static final int MIN_CARACTERES = 20;
+    /** Tope de páginas por OCR en un documento: cada una es una llamada a Gemini (cuota y tiempo). */
+    static final int MAX_PAGINAS_OCR = 30;
+
+    private static final System.Logger LOG = System.getLogger(ProcesarDocumento.class.getName());
+
     private final DocumentoRepositorio documentos;
     private final FragmentoRepositorio fragmentos;
     private final AlmacenTemporal almacen;
@@ -36,10 +44,12 @@ public class ProcesarDocumento {
     private final Fragmentador fragmentador;
     private final GeneradorEmbeddings embeddings;
     private final Avisos avisos;
+    private final LectorOcr ocr;
 
     public ProcesarDocumento(DocumentoRepositorio documentos, FragmentoRepositorio fragmentos,
                              AlmacenTemporal almacen, ExtractorTexto extractor,
-                             Fragmentador fragmentador, GeneradorEmbeddings embeddings, Avisos avisos) {
+                             Fragmentador fragmentador, GeneradorEmbeddings embeddings, Avisos avisos,
+                             LectorOcr ocr) {
         this.documentos = documentos;
         this.fragmentos = fragmentos;
         this.almacen = almacen;
@@ -47,6 +57,34 @@ public class ProcesarDocumento {
         this.fragmentador = fragmentador;
         this.embeddings = embeddings;
         this.avisos = avisos;
+        this.ocr = ocr;
+    }
+
+    /**
+     * OCR "cuando sea necesario" (requisito): PDFBox sigue leyendo las páginas con texto, y SOLO las que
+     * no tienen texto (las escaneadas) se mandan al OCR. Un PDF mixto (texto + un anexo escaneado) funciona.
+     * La página se conserva: la cita de Iris sigue diciendo "pág. 3" aunque esa página se haya leído por OCR.
+     */
+    static List<PaginaTexto> completarConOcr(byte[] pdf, List<PaginaTexto> paginas, LectorOcr ocr) {
+        List<Integer> escaneadas = paginas.stream()
+                .filter(p -> p.texto().strip().length() < MIN_CARACTERES)
+                .map(PaginaTexto::numero)
+                .toList();
+        if (escaneadas.isEmpty()) {
+            return paginas; // el caso normal: un PDF digital, sin llamar a nadie
+        }
+        if (escaneadas.size() > MAX_PAGINAS_OCR) {
+            throw new IllegalStateException("El PDF tiene " + escaneadas.size() + " páginas escaneadas y el máximo"
+                    + " para leer con OCR es " + MAX_PAGINAS_OCR + ". Divídelo en partes más pequeñas");
+        }
+        List<String> leidas = ocr.leer(pdf, escaneadas);
+        List<PaginaTexto> completas = new ArrayList<>(paginas.size());
+        for (PaginaTexto p : paginas) {
+            int i = escaneadas.indexOf(p.numero());
+            completas.add(i < 0 ? p : new PaginaTexto(p.numero(), leidas.get(i).strip()));
+        }
+        LOG.log(System.Logger.Level.INFO, "OCR: " + escaneadas.size() + " página(s) leídas como imagen " + escaneadas);
+        return completas;
     }
 
     /** "Documento indexado" a quien lo subió y a los propietarios (sin repetirle a quien lo subió). */
@@ -67,11 +105,12 @@ public class ProcesarDocumento {
         doc = documentos.guardar(doc.marcarProcesando());
         String ruta = doc.rutaTemporal();
         try {
-            // Paso 3: extraer el texto página por página
-            List<PaginaTexto> paginas = extractor.extraer(almacen.leer(ruta));
+            // Paso 3: extraer el texto página por página, y OCR para las páginas escaneadas
+            byte[] pdf = almacen.leer(ruta);
+            List<PaginaTexto> paginas = completarConOcr(pdf, extractor.extraer(pdf), ocr);
             if (paginas.stream().allMatch(p -> p.texto().isBlank())) {
-                // Casi seguro un PDF escaneado (imágenes): necesitaría OCR (fuera del alcance por ahora)
-                throw new IllegalStateException("El PDF no tiene texto seleccionable (¿es escaneado?)");
+                // Ni PDFBox ni el OCR encontraron texto: páginas en blanco o una imagen ilegible
+                throw new IllegalStateException("No encontré texto en el PDF, ni siquiera leyéndolo como imagen");
             }
             doc = documentos.guardar(doc.conPaginas(paginas.size()));
 

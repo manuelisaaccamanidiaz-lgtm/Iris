@@ -53,6 +53,7 @@ import com.iris.application.evento.ListarEventos;
 import com.iris.application.port.out.AlmacenTemporal;
 import com.iris.application.port.out.Antivirus;
 import com.iris.application.port.out.InspectorPdf;
+import com.iris.application.port.out.LectorOcr;
 import com.iris.application.port.out.AnalizadorDocumentos;
 import com.iris.application.port.out.BuscadorFragmentos;
 import com.iris.application.port.out.CodificadorPassword;
@@ -142,8 +143,9 @@ public class CasosDeUsoConfig {
     @Bean
     ProcesarDocumento procesarDocumento(DocumentoRepositorio documentos, FragmentoRepositorio fragmentos,
                                         AlmacenTemporal almacen, ExtractorTexto extractor,
-                                        Fragmentador fragmentador, GeneradorEmbeddings embeddings, Avisos avisos) {
-        return new ProcesarDocumento(documentos, fragmentos, almacen, extractor, fragmentador, embeddings, avisos);
+                                        Fragmentador fragmentador, GeneradorEmbeddings embeddings, Avisos avisos,
+                                        LectorOcr ocr) {
+        return new ProcesarDocumento(documentos, fragmentos, almacen, extractor, fragmentador, embeddings, avisos, ocr);
     }
 
     @Bean

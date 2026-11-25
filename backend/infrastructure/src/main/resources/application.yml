@@ -58,8 +58,9 @@ iris:
     # Cuánto dura una sesión antes de pedir login otra vez
     duracion: 8h
   antivirus:
-    # ClamAV en Docker (perfil "antivirus" del docker-compose). Apagado por defecto: pide de 3 a 4 GiB de RAM
-    habilitado: ${ANTIVIRUS_HABILITADO:false}
+    # ClamAV en Docker (servicio "antivirus" del docker-compose). ENCENDIDO por defecto (decisión de Isaac).
+    # Encendido y caído = los PDF se rechazan con 503 ("fallar cerrado")
+    habilitado: ${ANTIVIRUS_HABILITADO:true}
     host: ${ANTIVIRUS_HOST:localhost}
     puerto: ${ANTIVIRUS_PUERTO:3310}
     tiempo-conexion: 3s
@@ -76,6 +77,12 @@ iris:
       modelo: gemini-embedding-001
       # Debe coincidir con vector(1536) de la tabla fragmentos
       dimensiones: 1536
+    ocr:
+      # OCR de páginas escaneadas con Gemini visión: la MISMA clave de los embeddings
+      api-key: ${GEMINI_API_KEY}
+      modelo: ${IRIS_OCR_MODELO:gemini-3.5-flash-lite}
+      dpi: 150
+      tiempo-respuesta: 60s
     chat:
       # Groq (API compatible con OpenAI). La clave viene del .env
       api-key: ${GROQ_API_KEY}
