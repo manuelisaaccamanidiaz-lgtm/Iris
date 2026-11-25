@@ -101,17 +101,27 @@ export default function PanelChat({ evento, puedeEditar, conSubida = true }) {
   const proxima = deHoy.length ? null : sesiones
     .filter((s) => s.fecha > hoy)
     .sort((a, b) => (a.fecha + a.horaInicio).localeCompare(b.fecha + b.horaInicio))[0];
-  const nadaUrgente = urgentes.length === 0 && porRevisar === 0;
+  // Idea de Isaac: una tarea sin responsable es una tarea que nadie va a hacer
+  const sinResponsable = tareas.filter((t) => !t.responsableId).length;
+  const nadaUrgente = urgentes.length === 0 && porRevisar === 0 && sinResponsable === 0;
 
   return (
     <aside className="panel-chat" aria-label="Resumen del evento">
       <section className="panel-bloque">
         <h2 className="panel-titulo">Necesita tu atención</h2>
-        {nadaUrgente && <p className="texto-suave panel-nada">Todo al día. Nada vence en los próximos 3 días.</p>}
+        {nadaUrgente && <p className="texto-suave panel-nada">Todo al día: nada vence en 3 días y cada tarea tiene responsable.</p>}
         {porRevisar > 0 && (
           <Link to="../propuestas" className="panel-atencion panel-atencion-iris">
             <span className="lateral-contador">{porRevisar}</span>
             {porRevisar === 1 ? "propuesta de Iris por revisar" : "propuestas de Iris por revisar"}
+          </Link>
+        )}
+        {sinResponsable > 0 && (
+          <Link to="../tareas" className="panel-atencion">
+            <span className="panel-atencion-titulo">
+              {sinResponsable === 1 ? "1 tarea pendiente sin responsable" : `${sinResponsable} tareas pendientes sin responsable`}
+            </span>
+            <span className="chip chip-aviso">Asignar</span>
           </Link>
         )}
         {urgentes.map((t) => {
